@@ -52,6 +52,10 @@ output * bg #000000 solid_color
 
 input type:keyboard xkb_layout jaennil_rpd
 
+input type:pointer {
+	accel_profile "flat"
+}
+
 ### Input configuration
 #
 # Example configuration:
