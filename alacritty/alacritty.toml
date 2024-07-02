@@ -3,4 +3,4 @@ background = "0x000000"
 
 [font]
 normal = { family = "FiraCodeNerdFont" }
-size = 8
+size = 10
