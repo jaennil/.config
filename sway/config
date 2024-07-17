@@ -82,6 +82,8 @@ input type:pointer {
 	
 	bindsym $mod+b exec $browser
 
+	bindsym $mod+o exec osl
+
     # Kill focused window
     bindsym $mod+Shift+q kill
 
