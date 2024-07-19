@@ -33,3 +33,6 @@ qBittorrent
 systemd
 user-dirs.dirs
 user-dirs.locale
+GIMP
+gtk-2.0
+wezterm
