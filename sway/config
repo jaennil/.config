@@ -80,15 +80,15 @@ input type:pointer {
     # Start a terminal
     bindsym $mod+Return exec $term
 	
-	bindsym $mod+b exec $browser
+	bindsym --to-code $mod+b exec $browser
 
-	bindsym $mod+o exec osl
+	# bindsym $mod+o exec osl
 
     # Kill focused window
-    bindsym $mod+Shift+q kill
+    bindsym --to-code $mod+Shift+q kill
 
     # Start your launcher
-    bindsym $mod+d exec $menu
+    bindsym --to-code $mod+d exec $menu
 
     # Drag floating windows by holding down $mod and left mouse button.
     # Resize them with right mouse button + $mod.
@@ -98,18 +98,18 @@ input type:pointer {
     floating_modifier $mod normal
 
     # Reload the configuration file
-    bindsym $mod+Shift+c reload
+    bindsym --to-code $mod+Shift+c reload
 
     # Exit sway (logs you out of your Wayland session)
-    bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
+    bindsym --to-code $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
 #
 # Moving around:
 #
     # Move your focus around
-    bindsym $mod+$left focus left
-    bindsym $mod+$down focus down
-    bindsym $mod+$up focus up
-    bindsym $mod+$right focus right
+    bindsym --to-code $mod+$left focus left
+    bindsym --to-code $mod+$down focus down
+    bindsym --to-code $mod+$up focus up
+    bindsym --to-code $mod+$right focus right
     # Or use $mod+[up|down|left|right]
     # bindsym $mod+Left focus left
     # bindsym $mod+Down focus down
@@ -117,10 +117,10 @@ input type:pointer {
     # bindsym $mod+Right focus right
 
     # Move the focused window with the same, but add Shift
-    bindsym $mod+Shift+$left move left
-    bindsym $mod+Shift+$down move down
-    bindsym $mod+Shift+$up move up
-    bindsym $mod+Shift+$right move right
+    bindsym --to-code $mod+Shift+$left move left
+    bindsym --to-code $mod+Shift+$down move down
+    bindsym --to-code $mod+Shift+$up move up
+    bindsym --to-code $mod+Shift+$right move right
     # Ditto, with arrow keys
     # bindsym $mod+Shift+Left move left
     # bindsym $mod+Shift+Down move down
@@ -130,28 +130,28 @@ input type:pointer {
 # Workspaces:
 #
     # Switch to workspace
-    bindsym $mod+plus workspace number 1
-    bindsym $mod+bracketleft workspace number 2
-    bindsym $mod+braceleft workspace number 3
-    bindsym $mod+parenleft workspace number 4
-    bindsym $mod+ampersand workspace number 5
-    bindsym $mod+equal workspace number 6
-    bindsym $mod+parenright workspace number 7
-    bindsym $mod+braceright workspace number 8
-    bindsym $mod+bracketright workspace number 9
-    bindsym $mod+asterisk workspace number 10
+    bindsym --to-code $mod+plus workspace number 1
+    bindsym --to-code $mod+bracketleft workspace number 2
+    bindsym --to-code $mod+braceleft workspace number 3
+    bindsym --to-code $mod+parenleft workspace number 4
+    bindsym --to-code $mod+ampersand workspace number 5
+    bindsym --to-code $mod+equal workspace number 6
+    bindsym --to-code $mod+parenright workspace number 7
+    bindsym --to-code $mod+braceright workspace number 8
+    bindsym --to-code $mod+bracketright workspace number 9
+    bindsym --to-code $mod+asterisk workspace number 10
 
     # Move focused container to workspace
-    bindsym $mod+Shift+plus move container to workspace number 1
-    bindsym $mod+Shift+bracketleft move container to workspace number 2
-    bindsym $mod+Shift+braceleft move container to workspace number 3
-    bindsym $mod+Shift+parenleft move container to workspace number 4
-    bindsym $mod+Shift+ampersand move container to workspace number 5
-    bindsym $mod+Shift+equal move container to workspace number 6
-    bindsym $mod+Shift+parenright move container to workspace number 7
-    bindsym $mod+Shift+braceright move container to workspace number 8
-    bindsym $mod+Shift+bracketright move container to workspace number 9
-    bindsym $mod+Shift+asterisk move container to workspace number 10
+    bindsym --to-code $mod+Shift+plus move container to workspace number 1
+    bindsym --to-code $mod+Shift+bracketleft move container to workspace number 2
+    bindsym --to-code $mod+Shift+braceleft move container to workspace number 3
+    bindsym --to-code $mod+Shift+parenleft move container to workspace number 4
+    bindsym --to-code $mod+Shift+ampersand move container to workspace number 5
+    bindsym --to-code $mod+Shift+equal move container to workspace number 6
+    bindsym --to-code $mod+Shift+parenright move container to workspace number 7
+    bindsym --to-code $mod+Shift+braceright move container to workspace number 8
+    bindsym --to-code $mod+Shift+bracketright move container to workspace number 9
+    bindsym --to-code $mod+Shift+asterisk move container to workspace number 10
     # Note: workspaces can have any name you want, not just numbers.
     # We just use 1-10 as the default.
 #
@@ -161,15 +161,15 @@ input type:pointer {
     # $mod+b or $mod+v, for horizontal and vertical splits
     # respectively.
     # bindsym $mod+b splith
-    bindsym $mod+v splitv
+    bindsym --to-code $mod+v splitv
 
     # Switch the current container between different layout styles
-    bindsym $mod+s layout stacking
-    bindsym $mod+w layout tabbed
-    bindsym $mod+e layout toggle split
+    bindsym --to-code $mod+s layout stacking
+    bindsym --to-code $mod+w layout tabbed
+    bindsym --to-code $mod+e layout toggle split
 
     # Make the current focus fullscreen
-    bindsym $mod+f fullscreen
+    bindsym --to-code $mod+f fullscreen
 
     # Toggle the current focus between tiling and floating mode
     bindsym $mod+Shift+space floating toggle
@@ -199,10 +199,10 @@ mode "resize" {
     # right will grow the containers width
     # up will shrink the containers height
     # down will grow the containers height
-    bindsym $left resize shrink width 10px
-    bindsym $down resize grow height 10px
-    bindsym $up resize shrink height 10px
-    bindsym $right resize grow width 10px
+    bindsym --to-code $left resize shrink width 10px
+    bindsym --to-code $down resize grow height 10px
+    bindsym --to-code $up resize shrink height 10px
+    bindsym --to-code $right resize grow width 10px
 
     # Ditto, with arrow keys
     # bindsym Left resize shrink width 10px
@@ -214,7 +214,7 @@ mode "resize" {
     bindsym Return mode "default"
     bindsym Escape mode "default"
 }
-bindsym $mod+r mode "resize"
+bindsym --to-code $mod+r mode "resize"
 
 #
 # Status Bar:
