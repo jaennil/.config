@@ -8,8 +8,6 @@ QtProject
 QtProject.conf
 chromium
 clangd
-coc
-coc
 dconf
 discord
 dlv
