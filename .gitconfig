@@ -1,0 +1,9 @@
+[user]
+	email = jaennil@yandex.ru
+	name = jaennil
+[init]
+	defaultBranch = main
+[safe]
+	directory = /usr/bin/flutter
+[alias]
+	s = status
