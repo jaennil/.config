@@ -12,7 +12,7 @@ set $term alacritty
 
 set $menu dmenu_path | wmenu | xargs swaymsg exec --
 
-set $browser firefox
+set $browser qutebrowser
 
 output DP-3 resolution 1920x1080@144Hz position 1920 0
 output DP-1 resolution 3440x1440@100Hz
