@@ -1,6 +1,6 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
-SETUVAR --export BROWSER:firefox
+SETUVAR --export BROWSER:qutebrowser
 SETUVAR --export EDITOR:nvim
 SETUVAR --export GIT_CONFIG_GLOBAL:/home/jaennil/\x2econfig/\x2egitconfig
 SETUVAR __fish_initialized:3400
