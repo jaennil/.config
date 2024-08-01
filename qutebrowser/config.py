@@ -1,8 +1,8 @@
-import catppuccin
+# import catppuccin
 
 config.load_autoconfig(False)
 
-catppuccin.setup(c, 'mocha')
+# catppuccin.setup(c, 'mocha')
 
 c.editor.command = ['alacritty', '-e', 'nvim', '{file}']
 
@@ -14,5 +14,6 @@ config.bind('<Alt+&>', 'tab-focus 5')
 config.bind('<Alt+=>', 'tab-focus 6')
 config.bind('<Alt+)>', 'tab-focus 7')
 config.bind('<Alt+}>', 'tab-focus 8')
-config.bind('<Alt+]>', 'tab-focus -1')
+config.bind('<Alt+]>', 'tab-focus 9')
+config.bind('<Alt+*>', 'tab-focus -1')
 
