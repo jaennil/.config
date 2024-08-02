@@ -178,3 +178,9 @@ bindsym $mod+r mode "resize"
 bar {
         status_command i3status
 }
+
+# green focused window border
+client.focused          #4C7899 #285577 #FFFFFF #2E9EF4   #00FF00
+
+# disables window title bar
+new_window 1pixel
