@@ -3,6 +3,9 @@
 SETUVAR --export BROWSER:qutebrowser
 SETUVAR --export EDITOR:nvim
 SETUVAR --export GIT_CONFIG_GLOBAL:/home/jaennil/\x2econfig/\x2egitconfig
+SETUVAR --export GTK2_RC_FILES:/usr/share/themes/Adwaita\x2ddark/gtk\x2d2\x2e0/gtkrc
+SETUVAR --export GTK_THEME:Adwaita\x3adark
+SETUVAR --export QT_STYLE_OVERRIDE:Adwaita\x2dDark
 SETUVAR __fish_initialized:3400
 SETUVAR fish_color_autosuggestion:brblack
 SETUVAR fish_color_cancel:\x2dr

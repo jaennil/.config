@@ -25,3 +25,7 @@ With option enabled keys used by ssh will be automatically added to ssh-agent. N
 ### Telegram shortcuts
 
 put `./telegram/shortcuts-custom.json` in `~/.local/share/TelegramDesktop/tdata/`
+
+### Dark theme for GTK, QT apps
+
+install `gnome-themes-extra`, `adwaita-qt5-git`$^{AUR}$, `adwaita-qt6-git`$^{AUR}$.
