@@ -1,8 +1,4 @@
-# import catppuccin
-
 config.load_autoconfig(False)
-
-# catppuccin.setup(c, 'mocha')
 
 c.editor.command = ['alacritty', '-e', 'nvim', '{file}']
 
@@ -17,3 +13,4 @@ config.bind('<Alt+}>', 'tab-focus 8')
 config.bind('<Alt+]>', 'tab-focus 9')
 config.bind('<Alt+*>', 'tab-focus -1')
 
+c.content.proxy = "http://127.0.0.1:8888"
