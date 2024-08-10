@@ -14,3 +14,4 @@ config.bind('<Alt+]>', 'tab-focus 9')
 config.bind('<Alt+*>', 'tab-focus -1')
 
 c.content.proxy = "http://127.0.0.1:8888"
+c.auto_save.session = True
