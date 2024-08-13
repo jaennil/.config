@@ -14,13 +14,11 @@ then
 
 then prefix-I (default prefix is ctrl-b)
 
-### Fish ssh agent
+### SSH agent
 
-Add this line to `~/.ssh/config`
-```
-AddKeysToAgent yes
-```
-With option enabled keys used by ssh will be automatically added to ssh-agent. No need to call `ssh-add`.
+run xorg with:
+
+`ssh-agent startx`
 
 ### Telegram shortcuts
 
