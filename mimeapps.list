@@ -2,6 +2,8 @@
 x-scheme-handler/tg=org.telegram.desktop.desktop
 x-scheme-handler/postman=Postman.desktop
 text/html=org.qutebrowser.qutebrowser.desktop
+; TODO: fix to markdown. idk why xdg-mime treats .md files like `text/plain`, not `text/markdown`
+text/plain=firefox.desktop
 application/pdf=org.pwmt.zathura.desktop
 x-scheme-handler/http=org.qutebrowser.qutebrowser.desktop
 x-scheme-handler/https=org.qutebrowser.qutebrowser.desktop
