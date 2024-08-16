@@ -192,7 +192,15 @@ bar {
 }
 
 # green focused window border
-client.focused          #4C7899 #285577 #FFFFFF #2E9EF4   #00FF00
+client.focused    #4C7899 #285577 #FFFFFF #2E9EF4 #00FF00
 
 # disables window title bar
 new_window 1pixel
+
+assign [class="qutebrowser"] $ws2
+assign [class="gimp"] $ws7
+assign [class="Gimp"] $ws7
+assign [class="obsidian"] $ws8
+assign [class="pavucontrol"] $ws9
+assign [class="telegram-desktop"] $ws10
+assign [class="TelegramDesktop"] $ws10
