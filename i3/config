@@ -65,6 +65,7 @@ bindsym $mod+d exec --no-startup-id dmenu_run
 # .desktop file. It is a wrapper around dmenu, so you need that installed.
 # bindcode $mod+40 exec --no-startup-id i3-dmenu-desktop
 
+# TODO: try --no-startup-id
 bindsym $mod+b exec qutebrowser
 
 # change focus
@@ -94,7 +95,7 @@ bindsym $mod+f fullscreen toggle
 # bindsym $mod+e layout toggle split
 
 # toggle tiling / floating
-# bindsym $mod+Shift+space floating toggle
+bindsym $mod+Shift+space floating toggle
 
 # change focus between tiling / floating windows
 # bindsym $mod+space focus mode_toggle
@@ -117,6 +118,14 @@ set $ws7 "7"
 set $ws8 "8"
 set $ws9 "9"
 set $ws10 "10"
+
+set $monitor1 "DP-1"
+set $monitor2 "DP-3"
+
+workspace $ws1 output $monitor1
+workspace $ws2 output $monitor2
+workspace $ws9 output $monitor2
+workspace $ws10 output $monitor2
 
 # switch to workspace
 bindsym $mod+1 workspace number $ws1
