@@ -204,3 +204,5 @@ assign [class="obsidian"] $ws8
 assign [class="pavucontrol"] $ws9
 assign [class="telegram-desktop"] $ws10
 assign [class="TelegramDesktop"] $ws10
+
+exec --no-startup-id i3-msg 'exec qutebrowser; exec pavucontrol; exec telegram-desktop; exec i3-sensible-terminal'
