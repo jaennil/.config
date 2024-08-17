@@ -198,6 +198,8 @@ client.focused    #4C7899 #285577 #FFFFFF #2E9EF4 #00FF00
 new_window 1pixel
 
 assign [class="qutebrowser"] $ws2
+assign [class="gitkraken"] $ws6
+assign [class="GitKraken"] $ws6
 assign [class="gimp"] $ws7
 assign [class="Gimp"] $ws7
 assign [class="obsidian"] $ws8
