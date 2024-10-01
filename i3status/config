@@ -1,11 +1,11 @@
 general {
     output_format = "dzen2"
     colors = true
-    interval = 5
+    interval = 1
+}
+
+tztime local {
+    format = "%d.%m.%Y %A %H:%M:%S"
 }
 
 order += "tztime local"
-
-tztime local {
-    format = "%A %d.%m.%Y %H:%M:%S"
-}

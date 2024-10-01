@@ -1,0 +1,20 @@
+#!/bin/bash
+layout=""
+get_layout() {
+kb=$(xset -q | grep -oP '\d{8}')
+
+  case $kb in
+    "00001000")
+    layout="ru"
+    ;;
+    "00000000")
+    layout="en"
+    ;;
+  esac
+}
+i3status | while :
+do
+  read line
+  get_layout
+  echo "$layout $line" || exit 1
+done
