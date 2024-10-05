@@ -5,3 +5,7 @@
 	defaultBranch = main
 [alias]
 	s = status
+    a = add
+	p = push
+	l = log
+    c = commit
