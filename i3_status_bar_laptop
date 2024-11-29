@@ -1,0 +1,29 @@
+#!/bin/bash
+
+layout=""
+capacity=""
+
+get_layout() {
+kb=$(xset -q | grep -oP '\d{8}')
+
+  case $kb in
+    "00001000")
+    layout="ru"
+    ;;
+    "00000000")
+    layout="en"
+    ;;
+  esac
+}
+
+battery() {
+    capacity=$(cat /sys/class/power_supply/BAT0/capacity)
+}
+
+i3status | while :
+do
+  read line
+  get_layout
+  battery
+  echo "$layout $capacity $line" || exit 1
+done
