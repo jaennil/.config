@@ -2,6 +2,7 @@
 
 layout=""
 capacity=""
+timedate=""
 
 get_layout() {
 kb=$(xset -q | grep -oP '\d{8}')
@@ -17,7 +18,11 @@ kb=$(xset -q | grep -oP '\d{8}')
 }
 
 battery() {
-    capacity=$(cat /sys/class/power_supply/BAT0/capacity)
+    capacity="$(cat /sys/class/power_supply/BAT0/capacity)%"
+}
+
+timedate() {
+    timedate=$(timedatectl | awk '/Local time:/ {print $3, $4, $5, $6, $7}')
 }
 
 i3status | while :
@@ -25,5 +30,6 @@ do
   read line
   get_layout
   battery
-  echo "$layout $capacity $line" || exit 1
+  timedate
+  echo "$layout | $capacity | $timedate | $line" || exit 1
 done
