@@ -3,6 +3,7 @@
 layout=""
 capacity=""
 timedate=""
+status=""
 
 get_layout() {
 kb=$(xset -q | grep -oP '\d{8}')
@@ -19,6 +20,7 @@ kb=$(xset -q | grep -oP '\d{8}')
 
 battery() {
     capacity="$(cat /sys/class/power_supply/BAT0/capacity)%"
+    status="$(cat /sys/class/power_supply/BAT0/status)"
 }
 
 timedate() {
@@ -31,5 +33,5 @@ do
   get_layout
   battery
   timedate
-  echo "$layout | $capacity | $timedate | $line" || exit 1
+  echo "$layout | $capacity $status | $timedate | $line" || exit 1
 done
