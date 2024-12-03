@@ -5,6 +5,7 @@ capacity=""
 timedate=""
 status=""
 brightness=""
+volume=""
 
 get_layout() {
 kb=$(xset -q | grep -oP '\d{8}')
@@ -32,6 +33,10 @@ brightness() {
     brightness=$(cat /sys/class/backlight/amdgpu_bl1/brightness)
 }
 
+volume() {
+    volume=$(amixer sget Master | awk '/Front Left:/ {print $5 $6}')
+}
+
 i3status | while :
 do
   read line
@@ -39,5 +44,6 @@ do
   battery
   brightness
   timedate
-  echo "$layout | brightness: $brightness | $capacity $status | $timedate | $line" || exit 1
+  volume
+  echo "$layout | volume: $volume | brightness: $brightness | $capacity $status | $timedate | $line" || exit 1
 done
