@@ -4,6 +4,7 @@ layout=""
 capacity=""
 timedate=""
 status=""
+brightness=""
 
 get_layout() {
 kb=$(xset -q | grep -oP '\d{8}')
@@ -27,11 +28,16 @@ timedate() {
     timedate=$(timedatectl | awk '/Local time:/ {print $3, $4, $5, $6, $7}')
 }
 
+brightness() {
+    brightness=$(cat /sys/class/backlight/amdgpu_bl1/brightness)
+}
+
 i3status | while :
 do
   read line
   get_layout
   battery
+  brightness
   timedate
-  echo "$layout | $capacity $status | $timedate | $line" || exit 1
+  echo "$layout | brightness: $brightness | $capacity $status | $timedate | $line" || exit 1
 done
