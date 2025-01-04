@@ -1,0 +1,49 @@
+#!/bin/bash
+
+layout=""
+capacity=""
+timedate=""
+status=""
+brightness=""
+volume=""
+
+get_layout() {
+kb=$(xset -q | grep -oP '\d{8}')
+
+  case $kb in
+    "00001000")
+    layout="ru"
+    ;;
+    "00000000")
+    layout="en"
+    ;;
+  esac
+}
+
+battery() {
+    capacity="$(cat /sys/class/power_supply/BAT0/capacity)%"
+    status="$(cat /sys/class/power_supply/BAT0/status)"
+}
+
+timedate() {
+    timedate=$(timedatectl | awk '/Local time:/ {print $3, $4, $5, $6, $7}')
+}
+
+brightness() {
+    brightness=$(cat /sys/class/backlight/amdgpu_bl1/brightness)
+}
+
+volume() {
+    volume=$(amixer sget Master | awk '/Front Left:/ {print $5 $6}')
+}
+
+i3status | while :
+do
+  read line
+  get_layout
+  battery
+  brightness
+  timedate
+  volume
+  echo "$layout | volume: $volume | brightness: $brightness | $capacity $status | $timedate | $line" || exit 1
+done
