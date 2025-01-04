@@ -66,7 +66,7 @@ bindsym $mod+d exec --no-startup-id dmenu_run
 # bindcode $mod+40 exec --no-startup-id i3-dmenu-desktop
 
 # TODO: try --no-startup-id
-bindsym $mod+b exec qutebrowser
+bindsym $mod+b exec firefox
 
 # change focus
 bindsym $mod+h focus left
@@ -197,7 +197,7 @@ client.focused    #4C7899 #285577 #FFFFFF #2E9EF4 #00FF00
 # disables window title bar
 new_window 1pixel
 
-assign [class="qutebrowser"] $ws2
+assign [class="firefox"] $ws2
 assign [class="gitkraken"] $ws6
 assign [class="GitKraken"] $ws6
 assign [class="gimp"] $ws7
@@ -207,4 +207,4 @@ assign [class="pavucontrol"] $ws9
 assign [class="telegram-desktop"] $ws10
 assign [class="TelegramDesktop"] $ws10
 
-exec --no-startup-id i3-msg 'exec qutebrowser; exec pavucontrol; exec telegram-desktop; exec i3-sensible-terminal'
+exec --no-startup-id i3-msg 'exec firefox; exec pavucontrol; exec telegram-desktop; exec i3-sensible-terminal'
