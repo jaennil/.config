@@ -6,6 +6,7 @@ timedate=""
 status=""
 brightness=""
 volume=""
+cpu_temp=""
 
 get_layout() {
 kb=$(xset -q | grep -oP '\d{8}')
@@ -37,6 +38,10 @@ volume() {
     volume=$(amixer sget Master | awk '/Front Left:/ {print $5 $6}')
 }
 
+cpu_temp() {
+    cpu_temp=$(sensors | awk '/CPU:/ {printf $2}')
+}
+
 i3status | while :
 do
   read line
@@ -45,5 +50,6 @@ do
   brightness
   timedate
   volume
-  echo "$layout | volume: $volume | brightness: $brightness | $capacity $status | $timedate | $line" || exit 1
+  cpu_temp
+  echo "$layout | cpu: $cpu_temp | volume: $volume | brightness: $brightness | $capacity $status | $timedate | $line" || exit 1
 done
