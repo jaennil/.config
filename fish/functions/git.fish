@@ -1,5 +1,5 @@
 function git
-    if test "$argv[1]" = "push"
+    if test "$argv[1]" = "push" -o "$argv[1]" = "pull"
         if not set -q SSH_AUTH_SOCK
             echo "GIT SSH AGENT HELPER: ssh agent not started. restart xorg with `ssh-agent startx`"
         end
