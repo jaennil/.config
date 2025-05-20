@@ -40,4 +40,35 @@ obs-studio/
 openfreebuds/
 vlc/
 obsidian/
+.avalonia-build-tasks/
+AmneziaVPN.ORG/
+AvantGarde/
+Code - OSS/
+Cursor/
+Gaijin/
+TeamSpeak/
+Ultralytics/
+WarThunder/
+Windsurf/
+bless/
+btop/
+evans/
+figma-linux/
+fyne/
+gopls/
+helm/
+hydra/
+hydralauncher/
+icedtea-web/
+inkscape/
+kdeglobals
+kolourpaintrc
+mmctl/
+nextjs-nodejs/
+nyxt/
+qutebrowser/autoconfig.yml
+rustdesk/
+swi-prolog/
+yandex-cloud/
+yarn/
 
