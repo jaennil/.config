@@ -3,7 +3,7 @@ background = "0x000000"
 
 [font]
 normal = { family = "FiraCodeNerdFont" }
-size = 10
+size = 6
 
 [general]
 import = [
