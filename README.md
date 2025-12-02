@@ -27,3 +27,8 @@ put `./telegram/shortcuts-custom.json` in `~/.local/share/TelegramDesktop/tdata/
 ### Dark theme for GTK, QT apps
 
 install `gnome-themes-extra`, `adwaita-qt5-git`$^{AUR}$, `adwaita-qt6-git`$^{AUR}$.
+
+### Keyboard
+
+sudo cp ~/.config/keyboard/wayland/jaennil_rpd /usr/share/X11/xkb/symbols/
+setxkbmap jaennil_rpd,ru -option "grp:alt_shift_toggle,ctrl:swapcaps"
