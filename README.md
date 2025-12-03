@@ -60,6 +60,10 @@ gsettings set org.gnome.desktop.wm.keybindings move-to-workspace-1 "['<Shift><Su
 
 gsettings set org.gnome.mutter overlay-key ''
 
+### Mouse hover focus
+
+gsettings set org.gnome.desktop.wm.preferences focus-mode 'sloppy'
+
 ### fish as default shell
 
 echo "$(command -v fish)" | sudo tee -a /etc/shells
