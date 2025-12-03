@@ -70,3 +70,7 @@ echo "$(command -v fish)" | sudo tee -a /etc/shells
 chsh -s "$(command -v fish)"
 
 Then logout and log back in
+
+### Alacritty theme
+
+git clone https://github.com/alacritty/alacritty-theme ~/.config/alacritty/themes
