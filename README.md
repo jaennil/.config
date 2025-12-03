@@ -55,3 +55,10 @@ gsettings set org.gnome.desktop.wm.keybindings move-to-workspace-4 "['<Shift><Su
 gsettings set org.gnome.desktop.wm.keybindings move-to-workspace-3 "['<Shift><Super>3']"
 gsettings set org.gnome.desktop.wm.keybindings move-to-workspace-2 "['<Shift><Super>2']"
 gsettings set org.gnome.desktop.wm.keybindings move-to-workspace-1 "['<Shift><Super>1']"
+
+### fish as default shell
+
+echo "$(command -v fish)" | sudo tee -a /etc/shells
+chsh -s "$(command -v fish)"
+
+Then logout and log back in
