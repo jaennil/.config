@@ -56,6 +56,10 @@ gsettings set org.gnome.desktop.wm.keybindings move-to-workspace-3 "['<Shift><Su
 gsettings set org.gnome.desktop.wm.keybindings move-to-workspace-2 "['<Shift><Super>2']"
 gsettings set org.gnome.desktop.wm.keybindings move-to-workspace-1 "['<Shift><Super>1']"
 
+### Disable gnome default launcher
+
+gsettings set org.gnome.mutter overlay-key ''
+
 ### fish as default shell
 
 echo "$(command -v fish)" | sudo tee -a /etc/shells
