@@ -80,3 +80,15 @@ git clone https://github.com/alacritty/alacritty-theme ~/.config/alacritty/theme
 sudo update-alternatives --install /usr/bin/x-terminal-emulator x-terminal-emulator $(which alacritty) 50
 sudo update-alternatives --config x-terminal-emulator
 gsettings set org.gnome.desktop.default-applications.terminal exec 'alacritty'
+
+
+### Install FireCodeNerdFont on Ubuntu
+
+Download FiraCodeNerdFont from website: https://www.nerdfonts.com/font-downloads
+
+mkdir -p ~/.local/share/fonts
+mv ~/Downloads/FiraCode.zip ~/.local/share/fonts
+unzip ~/.local/share/fonts/FiraCode.zip -d ~/.local/share/fonts/
+rm ~/.local/share/fonts/FiraCode.zip
+fc-cache -fv
+
