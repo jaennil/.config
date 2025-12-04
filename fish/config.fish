@@ -5,6 +5,7 @@ end
 fish_better_vi_key_bindings
 
 set -gx PATH $PATH ~/.local/share/nvim/mason/bin
+set -gx PATH $PATH ~/.local/bin
 set -gx BROWSER zen-browser
 
 if test -z "$DISPLAY" -a (tty) = "/dev/tty1"
