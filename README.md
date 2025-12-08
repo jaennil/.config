@@ -92,3 +92,6 @@ unzip ~/.local/share/fonts/FiraCode.zip -d ~/.local/share/fonts/
 rm ~/.local/share/fonts/FiraCode.zip
 fc-cache -fv
 
+### Ubuntu top panel workspace scroll extension
+
+https://extensions.gnome.org/extension/701/top-panel-workspace-scroll/
