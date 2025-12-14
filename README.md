@@ -95,3 +95,7 @@ fc-cache -fv
 ### Ubuntu top panel workspace scroll extension
 
 https://extensions.gnome.org/extension/701/top-panel-workspace-scroll/
+
+### Ubuntu telegram
+
+ln -s /opt/Telegram/Telegram ~/.local/bin/telegram
