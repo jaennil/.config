@@ -2,6 +2,7 @@
 
 layout=""
 capacity=""
+capacity_num=""
 timedate=""
 status=""
 brightness=""
@@ -24,7 +25,8 @@ kb=$(xset -q | grep -oP '\d{8}')
 }
 
 battery() {
-    capacity="$(cat /sys/class/power_supply/BAT0/capacity)%"
+    capacity_num="$(cat /sys/class/power_supply/BAT0/capacity)"
+    capacity="${capacity_num}%"
     status="$(cat /sys/class/power_supply/BAT0/status)"
 }
 
@@ -65,9 +67,13 @@ bluetooth() {
     bluetooth=$(bluetoothctl devices Connected | awk '{$1=$2=""; print substr($0,3)}' | paste -sd, -)
 }
 
-i3status | while :
+# Output JSON header for i3bar protocol
+echo '{"version":1}'
+echo '['
+echo '[]'
+
+while :
 do
-  read line
   get_layout
   battery
   brightness
@@ -76,5 +82,23 @@ do
   cpu_temp
   dns
   bluetooth
-  echo "$layout | bt: $bluetooth | dns: $dns | cpu: $cpu_temp | volume: $volume | brightness: $brightness | $capacity $status | $timedate | $line" || exit 1
+
+  # Set battery color based on capacity
+  if [ "$capacity_num" -lt 20 ] && [ "$status" != "Charging" ]; then
+      battery_color=',"color":"#FF0000"'
+  else
+      battery_color=""
+  fi
+
+  echo ",[
+    {\"full_text\":\"$layout\"},
+    {\"full_text\":\"bt: $bluetooth\"},
+    {\"full_text\":\"dns: $dns\"},
+    {\"full_text\":\"cpu: $cpu_temp\"},
+    {\"full_text\":\"volume: $volume\"},
+    {\"full_text\":\"brightness: $brightness\"},
+    {\"full_text\":\"$capacity $status\"$battery_color},
+    {\"full_text\":\"$timedate\"}
+  ]"
+  sleep 1
 done
