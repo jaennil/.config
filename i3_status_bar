@@ -120,12 +120,22 @@ do
       volume_color=""
   fi
 
+  # DNS color (red if stage)
+  stage_dns="10.13.245.31"
+  if [ "$dns" = "$stage_dns" ]; then
+      dns_color=',"color":"#FF0000"'
+      dns_suffix=" (stage)"
+  else
+      dns_color=""
+      dns_suffix=""
+  fi
+
   echo ",[
     {\"full_text\":\"$layout\",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | bt: \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$bluetooth\",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | dns: \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$dns\",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$dns$dns_suffix\"$dns_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | cpu: \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$cpu_temp\"$cpu_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | volume: \",\"separator\":false,\"separator_block_width\":0},
