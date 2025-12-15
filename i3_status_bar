@@ -83,19 +83,42 @@ do
   dns
   bluetooth
 
-  # Set battery color based on capacity
-  if [ "$capacity_num" -lt 20 ] && [ "$status" != "Charging" ]; then
-      battery_color=',"color":"#FF0000"'
+  # Battery color
+  if [ "$status" = "Charging" ]; then
+      battery_color=',"color":"#00FF00"'  # green when charging
+  elif [ "$capacity_num" -lt 10 ]; then
+      battery_color=',"color":"#FF0000"'  # red - critical
+  elif [ "$capacity_num" -lt 20 ]; then
+      battery_color=',"color":"#FF6600"'  # orange - low
+  elif [ "$capacity_num" -lt 40 ]; then
+      battery_color=',"color":"#FFFF00"'  # yellow - medium
   else
       battery_color=""
+  fi
+
+  # CPU temp color
+  cpu_temp_num=$(echo "$cpu_temp" | grep -oP '\d+')
+  if [ "$cpu_temp_num" -gt 80 ] 2>/dev/null; then
+      cpu_color=',"color":"#FF0000"'  # red - hot
+  elif [ "$cpu_temp_num" -gt 65 ] 2>/dev/null; then
+      cpu_color=',"color":"#FF6600"'  # orange - warm
+  else
+      cpu_color=""
+  fi
+
+  # Volume color (red if muted)
+  if echo "$volume" | grep -q "\[off\]"; then
+      volume_color=',"color":"#FF0000"'
+  else
+      volume_color=""
   fi
 
   echo ",[
     {\"full_text\":\"$layout\"},
     {\"full_text\":\"bt: $bluetooth\"},
     {\"full_text\":\"dns: $dns\"},
-    {\"full_text\":\"cpu: $cpu_temp\"},
-    {\"full_text\":\"volume: $volume\"},
+    {\"full_text\":\"cpu: $cpu_temp\"$cpu_color},
+    {\"full_text\":\"volume: $volume\"$volume_color},
     {\"full_text\":\"brightness: $brightness\"},
     {\"full_text\":\"$capacity $status\"$battery_color},
     {\"full_text\":\"$timedate\"}
