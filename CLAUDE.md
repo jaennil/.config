@@ -4,3 +4,6 @@
 - start commit message with lowercase letter
 - use conventional commit messages
 - разделяй комиты на логические едицины. single responsibility principle для комитов
+- git commit only when tested by user
+- всегда покрывай всё логами
+- never push real credentials to github/gitlab
