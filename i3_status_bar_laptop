@@ -8,6 +8,7 @@ brightness=""
 volume=""
 cpu_temp=""
 dns=""
+bluetooth=""
 
 get_layout() {
 kb=$(xset -q | grep -oP '\d{8}')
@@ -47,6 +48,10 @@ dns() {
     dns=$(nmcli dev show | awk '/IP4.DNS\[1\]/ {print $2}')
 }
 
+bluetooth() {
+    bluetooth=$(bluetoothctl devices Connected | awk '{$1=$2=""; print substr($0,3)}' | paste -sd, -)
+}
+
 i3status | while :
 do
   read line
@@ -57,5 +62,6 @@ do
   volume
   cpu_temp
   dns
-  echo "$layout | dns: $dns | cpu: $cpu_temp | volume: $volume | brightness: $brightness | $capacity $status | $timedate | $line" || exit 1
+  bluetooth
+  echo "$layout | bt: $bluetooth | dns: $dns | cpu: $cpu_temp | volume: $volume | brightness: $brightness | $capacity $status | $timedate | $line" || exit 1
 done
