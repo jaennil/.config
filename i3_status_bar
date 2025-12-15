@@ -41,7 +41,13 @@ volume() {
 }
 
 cpu_temp() {
-    cpu_temp=$(sensors | awk '/CPU:/ {printf $2}')
+    for zone in /sys/class/thermal/thermal_zone*; do
+        if grep -q "x86_pkg_temp\|coretemp\|k10temp" "$zone/type" 2>/dev/null; then
+            cpu_temp=$(($(cat "$zone/temp") / 1000))°C
+            return
+        fi
+    done
+    cpu_temp="N/A"
 }
 
 dns() {
