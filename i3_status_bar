@@ -50,7 +50,7 @@ volume() {
 cpu_temp() {
     for zone in /sys/class/thermal/thermal_zone*; do
         if grep -q "x86_pkg_temp\|coretemp\|k10temp" "$zone/type" 2>/dev/null; then
-            cpu_temp=$(($(cat "$zone/temp") / 1000))°C
+            cpu_temp=$(printf "%3d°C" $(($(cat "$zone/temp") / 1000)))
             return
         fi
     done
