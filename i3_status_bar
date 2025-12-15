@@ -10,6 +10,7 @@ volume=""
 cpu_temp=""
 dns=""
 bluetooth=""
+low_battery_notified=""
 
 get_layout() {
 kb=$(xset -q | grep -oP '\d{8}')
@@ -83,6 +84,14 @@ do
   cpu_temp
   dns
   bluetooth
+
+  # Low battery notification
+  if [ "$capacity_num" -le 20 ] && [ "$status" = "Discharging" ] && [ -z "$low_battery_notified" ]; then
+      notify-send -u critical "Low Battery" "Battery at ${capacity_num}%"
+      low_battery_notified="1"
+  elif [ "$capacity_num" -gt 20 ] || [ "$status" = "Charging" ]; then
+      low_battery_notified=""
+  fi
 
   # Battery status color
   if [ "$status" = "Charging" ]; then
