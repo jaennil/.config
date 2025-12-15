@@ -99,3 +99,7 @@ https://extensions.gnome.org/extension/701/top-panel-workspace-scroll/
 ### Ubuntu telegram
 
 ln -s /opt/Telegram/Telegram ~/.local/bin/telegram
+
+### Claude Code
+
+ln -s ~/.config/CLAUDE.md ~/.claude/CLAUDE.md
