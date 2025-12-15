@@ -33,7 +33,14 @@ timedate() {
 }
 
 brightness() {
-    brightness=$(cat /sys/class/backlight/amdgpu_bl1/brightness)
+    local bl=$(ls /sys/class/backlight/ | head -1)
+    if [ -n "$bl" ]; then
+        local cur=$(cat /sys/class/backlight/$bl/brightness)
+        local max=$(cat /sys/class/backlight/$bl/max_brightness)
+        brightness=$((cur * 100 / max))%
+    else
+        brightness="N/A"
+    fi
 }
 
 volume() {
