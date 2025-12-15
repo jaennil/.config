@@ -3,9 +3,3 @@ general {
     colors = true
     interval = 1
 }
-
-tztime local {
-    format = "%d.%m.%Y %A %H:%M:%S"
-}
-
-order += "tztime local"
