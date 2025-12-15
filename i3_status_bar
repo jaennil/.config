@@ -65,6 +65,7 @@ dns() {
 
 bluetooth() {
     bluetooth=$(bluetoothctl devices Connected | awk '{$1=$2=""; print substr($0,3)}' | paste -sd, -)
+    [ -z "$bluetooth" ] && bluetooth="-"
 }
 
 # Output JSON header for i3bar protocol
