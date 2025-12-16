@@ -256,6 +256,13 @@ do
       vpn_color=',"color":"#FF6600"'  # orange
   fi
 
+  # Layout color
+  if [ "$layout" = "en" ]; then
+      layout_color=',"color":"#00FF00"'  # green
+  else
+      layout_color=',"color":"#FFFF00"'  # yellow
+  fi
+
   # CPU usage color
   cpu_usage_num=$(echo "$cpu_usage" | grep -oP '\d+')
   if [ "$cpu_usage_num" -gt 90 ] 2>/dev/null; then
@@ -310,7 +317,7 @@ do
     {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$status\"$status_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$layout\",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$layout\"$layout_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$timedate\"}
   ]"
