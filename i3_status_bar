@@ -61,7 +61,7 @@ cpu_temp() {
 }
 
 dns() {
-    dns=$(nmcli dev show | awk '/IP4.DNS\[1\]/ {print $2}')
+    dns=$(nmcli dev show | awk '/IP4.DNS/ {print $2}' | tr '\n' ' ' | sed 's/ $//' | sed 's/ /  /g')
 }
 
 bluetooth() {
