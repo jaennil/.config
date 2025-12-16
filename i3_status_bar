@@ -11,6 +11,8 @@ cpu_temp=""
 dns=""
 bluetooth=""
 low_battery_notified=""
+wifi=""
+vpn=""
 
 get_layout() {
 kb=$(xset -q | grep -oP '\d{8}')
@@ -64,6 +66,24 @@ dns() {
     dns=$(nmcli dev show | awk '/IP4.DNS/ {print $2}' | tr '\n' ' ' | sed 's/ $//' | sed 's/ /  /g')
 }
 
+wifi() {
+    local ssid=$(iwgetid -r 2>/dev/null)
+    if [ -n "$ssid" ]; then
+        local quality=$(awk 'NR==3 {printf "%.0f%%", $3*100/70}' /proc/net/wireless 2>/dev/null)
+        wifi="$ssid $quality"
+    else
+        wifi="down"
+    fi
+}
+
+vpn() {
+    if nmcli -t -f TYPE,STATE connection show --active 2>/dev/null | grep -q "^vpn:"; then
+        vpn="up"
+    else
+        vpn="down"
+    fi
+}
+
 bluetooth() {
     local devices=$(bluetoothctl devices Connected | awk '{print $2}')
     if [ -z "$devices" ]; then
@@ -101,6 +121,8 @@ do
   cpu_temp
   dns
   bluetooth
+  wifi
+  vpn
 
   # Low battery notification
   if [ "$capacity_num" -le 20 ] && [ "$status" = "Discharging" ] && [ -z "$low_battery_notified" ]; then
@@ -173,8 +195,19 @@ do
       bt_bat_color=""
   fi
 
+  # VPN color
+  if [ "$vpn" = "up" ]; then
+      vpn_color=',"color":"#00FF00"'  # green
+  else
+      vpn_color=',"color":"#FF6600"'  # orange
+  fi
+
   echo ",[
     {\"full_text\":\"$layout\",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\" | wifi: \",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$wifi\",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\" | vpn: \",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$vpn\"$vpn_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | bt: \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$bluetooth\",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
