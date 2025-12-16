@@ -16,6 +16,7 @@ vpn=""
 cpu_usage=""
 prev_idle=0
 prev_total=0
+ram_usage=""
 
 get_layout() {
 kb=$(xset -q | grep -oP '\d{8}')
@@ -94,6 +95,13 @@ cpu_usage() {
     prev_total=$total
 }
 
+ram_usage() {
+    local total=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
+    local available=$(awk '/MemAvailable/ {print $2}' /proc/meminfo)
+    local used=$((total - available))
+    ram_usage=$((used * 100 / total))%
+}
+
 dns() {
     dns=$(nmcli dev show | awk '/IP4.DNS/ {print $2}' | tr '\n' ' ' | sed 's/ $//' | sed 's/ /  /g')
 }
@@ -152,6 +160,7 @@ do
   volume
   cpu_temp
   cpu_usage
+  ram_usage
   dns
   bluetooth
   wifi
@@ -247,6 +256,18 @@ do
       cpu_usage_color=',"color":"#00FF00"'  # green - normal
   fi
 
+  # RAM usage color
+  ram_usage_num=$(echo "$ram_usage" | grep -oP '\d+')
+  if [ "$ram_usage_num" -gt 90 ] 2>/dev/null; then
+      ram_usage_color=',"color":"#FF0000"'  # red - critical
+  elif [ "$ram_usage_num" -gt 70 ] 2>/dev/null; then
+      ram_usage_color=',"color":"#FF6600"'  # orange - high
+  elif [ "$ram_usage_num" -gt 50 ] 2>/dev/null; then
+      ram_usage_color=',"color":"#FFFF00"'  # yellow - medium
+  else
+      ram_usage_color=',"color":"#00FF00"'  # green - normal
+  fi
+
   echo ",[
     {\"full_text\":\"$layout\",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | wifi: \",\"separator\":false,\"separator_block_width\":0},
@@ -263,6 +284,8 @@ do
     {\"full_text\":\"$cpu_usage\"$cpu_usage_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$cpu_temp\"$cpu_color,\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\" | ram: \",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$ram_usage\"$ram_usage_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | volume: \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$volume\"$volume_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | brightness: \",\"separator\":false,\"separator_block_width\":0},
