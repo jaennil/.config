@@ -65,8 +65,25 @@ dns() {
 }
 
 bluetooth() {
-    bluetooth=$(bluetoothctl devices Connected | awk '{$1=$2=""; print substr($0,3)}' | paste -sd, -)
-    [ -z "$bluetooth" ] && bluetooth="-"
+    local devices=$(bluetoothctl devices Connected | awk '{print $2}')
+    if [ -z "$devices" ]; then
+        bluetooth="-"
+        bluetooth_battery=""
+        return
+    fi
+
+    local names=""
+    local batteries=""
+    for mac in $devices; do
+        local name=$(bluetoothctl info "$mac" | awk -F': ' '/Name:/ {print $2}')
+        names="${names}${name}, "
+
+        local bat=$(upower -e 2>/dev/null | grep -i "${mac//:/_}" | xargs -I{} upower -i {} 2>/dev/null | awk '/percentage:/ {print $2}' | tr -d '%')
+        [ -n "$bat" ] && batteries="${batteries}${bat}% " || batteries="${batteries}N/A "
+    done
+
+    bluetooth="${names%, }"
+    bluetooth_battery="${batteries% }"
 }
 
 # Output JSON header for i3bar protocol
@@ -110,7 +127,7 @@ do
   elif [ "$capacity_num" -lt 40 ]; then
       capacity_color=',"color":"#FFFF00"'  # yellow - medium
   else
-      capacity_color=""
+      capacity_color=',"color":"#00FF00"'  # green - good
   fi
 
   # CPU temp color
@@ -120,14 +137,14 @@ do
   elif [ "$cpu_temp_num" -gt 65 ] 2>/dev/null; then
       cpu_color=',"color":"#FF6600"'  # orange - warm
   else
-      cpu_color=""
+      cpu_color=',"color":"#00FF00"'  # green - normal
   fi
 
-  # Volume color (red if muted)
+  # Volume color
   if echo "$volume" | grep -q "\[off\]"; then
-      volume_color=',"color":"#FF0000"'
+      volume_color=',"color":"#00FF00"'  # green - muted
   else
-      volume_color=""
+      volume_color=',"color":"#FF6600"'  # orange - on
   fi
 
   # DNS color (red if stage)
@@ -140,10 +157,28 @@ do
       dns_suffix=""
   fi
 
+  # Bluetooth battery color
+  bt_bat_num=$(echo "$bluetooth_battery" | grep -oP '^\d+' | head -1)
+  if [ -n "$bt_bat_num" ]; then
+      if [ "$bt_bat_num" -lt 10 ]; then
+          bt_bat_color=',"color":"#FF0000"'  # red
+      elif [ "$bt_bat_num" -lt 20 ]; then
+          bt_bat_color=',"color":"#FF6600"'  # orange
+      elif [ "$bt_bat_num" -lt 40 ]; then
+          bt_bat_color=',"color":"#FFFF00"'  # yellow
+      else
+          bt_bat_color=',"color":"#00FF00"'  # green - good
+      fi
+  else
+      bt_bat_color=""
+  fi
+
   echo ",[
     {\"full_text\":\"$layout\",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | bt: \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$bluetooth\",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$bluetooth_battery\"$bt_bat_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | dns: \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$dns$dns_suffix\"$dns_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | cpu: \",\"separator\":false,\"separator_block_width\":0},
