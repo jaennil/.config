@@ -196,14 +196,12 @@ do
   fi
 
   # Battery capacity color
-  if [ "$capacity_num" -lt 10 ]; then
-      capacity_color=',"color":"#FF0000"'  # red - critical
-  elif [ "$capacity_num" -lt 20 ]; then
-      capacity_color=',"color":"#FF6600"'  # orange - low
-  elif [ "$capacity_num" -lt 40 ]; then
-      capacity_color=',"color":"#FFFF00"'  # yellow - medium
+  if [ "$capacity_num" -lt 30 ]; then
+      capacity_color=',"color":"#FF0000"'  # red
+  elif [ "$capacity_num" -lt 60 ]; then
+      capacity_color=',"color":"#FFFF00"'  # yellow
   else
-      capacity_color=',"color":"#00FF00"'  # green - good
+      capacity_color=',"color":"#00FF00"'  # green
   fi
 
   # CPU temp color
