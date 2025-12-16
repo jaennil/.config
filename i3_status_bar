@@ -227,5 +227,5 @@ do
     {\"full_text\":\" | \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$timedate\"}
   ]"
-  sleep 1
+  sleep 0.2
 done
