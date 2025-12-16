@@ -18,6 +18,7 @@ prev_idle=0
 prev_total=0
 ram_usage=""
 top_process=""
+top_ram_process=""
 
 get_layout() {
 kb=$(xset -q | grep -oP '\d{8}')
@@ -107,6 +108,10 @@ top_process() {
     top_process=$(top -bn1 -o %CPU | awk 'NR>7 {printf "%s %.0f%%", $12, $9; exit}')
 }
 
+top_ram_process() {
+    top_ram_process=$(top -bn1 -o %MEM | awk 'NR>7 {printf "%s %.0f%%", $12, $10; exit}')
+}
+
 dns() {
     dns=$(nmcli dev show | awk '/IP4.DNS/ {print $2}' | tr '\n' ' ' | sed 's/ $//' | sed 's/ /  /g')
 }
@@ -167,6 +172,7 @@ do
   cpu_usage
   ram_usage
   top_process
+  top_ram_process
   dns
   bluetooth
   wifi
@@ -294,6 +300,8 @@ do
     {\"full_text\":\"$top_process\",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | ram: \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$ram_usage\"$ram_usage_color,\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$top_ram_process\",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | volume: \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$volume\"$volume_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | brightness: \",\"separator\":false,\"separator_block_width\":0},
