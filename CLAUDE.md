@@ -7,3 +7,4 @@
 - git commit only when tested by user
 - всегда покрывай всё логами
 - never push real credentials to github/gitlab
+- never run docker compose up
