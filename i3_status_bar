@@ -105,11 +105,11 @@ ram_usage() {
 }
 
 top_process() {
-    top_process=$(top -bn1 -o %CPU | awk 'NR>7 {printf "%s %.0f%%", $12, $9; exit}')
+    top_process=$(top -bn1 -o %CPU | awk 'NR>7 {printf "%8.8s %3.0f%%", $12, $9; exit}')
 }
 
 top_ram_process() {
-    top_ram_process=$(top -bn1 -o %MEM | awk 'NR>7 {printf "%s %.0f%%", $12, $10; exit}')
+    top_ram_process=$(top -bn1 -o %MEM | awk 'NR>7 {printf "%8.8s %3.0f%%", $12, $10; exit}')
 }
 
 dns() {
@@ -281,7 +281,16 @@ do
   fi
 
   echo ",[
-    {\"full_text\":\"$layout\",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"cpu: \",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$cpu_temp\"$cpu_color,\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$cpu_usage\"$cpu_usage_color,\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$top_process\",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\" | ram: \",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$ram_usage\"$ram_usage_color,\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$top_ram_process\",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | wifi: \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$wifi\",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | vpn: \",\"separator\":false,\"separator_block_width\":0},
@@ -292,16 +301,6 @@ do
     {\"full_text\":\"$bluetooth_battery\"$bt_bat_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | dns: \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$dns$dns_suffix\"$dns_color,\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\" | cpu: \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$cpu_temp\"$cpu_color,\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$cpu_usage\"$cpu_usage_color,\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$top_process\",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\" | ram: \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$ram_usage\"$ram_usage_color,\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$top_ram_process\",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | volume: \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$volume\"$volume_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | brightness: \",\"separator\":false,\"separator_block_width\":0},
@@ -310,6 +309,8 @@ do
     {\"full_text\":\"$capacity\"$capacity_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$status\"$status_color,\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\" | \",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$layout\",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$timedate\"}
   ]"
