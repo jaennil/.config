@@ -105,11 +105,21 @@ ram_usage() {
 }
 
 top_process() {
-    top_process=$(top -bn1 -o %CPU | awk 'NR>7 {printf "%8.8s %3.0f%%", $12, $9; exit}')
+    top_process=$(top -bn1 -o %CPU | awk 'NR>7 {
+        name = substr($12, 1, 8)
+        pad = int((8 - length(name)) / 2)
+        printf "%*s%-*s %3.0f%%", pad, "", 8 - pad, name, $9
+        exit
+    }')
 }
 
 top_ram_process() {
-    top_ram_process=$(top -bn1 -o %MEM | awk 'NR>7 {printf "%8.8s %3.0f%%", $12, $10; exit}')
+    top_ram_process=$(top -bn1 -o %MEM | awk 'NR>7 {
+        name = substr($12, 1, 8)
+        pad = int((8 - length(name)) / 2)
+        printf "%*s%-*s %3.0f%%", pad, "", 8 - pad, name, $10
+        exit
+    }')
 }
 
 dns() {
