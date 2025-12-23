@@ -102,4 +102,7 @@ ln -s /opt/Telegram/Telegram ~/.local/bin/telegram
 
 ### Claude Code
 
+```
 ln -s ~/.config/CLAUDE.md ~/.claude/CLAUDE.md
+ln -s ~/.config/.claude/settings.local.json ~/.claude/settings.local.json
+```
