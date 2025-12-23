@@ -259,9 +259,9 @@ do
 
   # VPN color
   if [ "$vpn" = "up" ]; then
-      vpn_color=',"color":"#00FF00"'  # green
-  else
       vpn_color=',"color":"#FF6600"'  # orange
+  else
+      vpn_color=',"color":"#00FF00"'  # green
   fi
 
   # Layout color
