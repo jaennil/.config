@@ -19,6 +19,7 @@ prev_total=0
 ram_usage=""
 top_process=""
 top_ram_process=""
+power_watts=""
 
 get_layout() {
 kb=$(xset -q | grep -oP '\d{8}')
@@ -37,6 +38,14 @@ battery() {
     capacity_num="$(cat /sys/class/power_supply/BAT0/capacity)"
     capacity="${capacity_num}%"
     status="$(cat /sys/class/power_supply/BAT0/status)"
+
+    # Get power in watts
+    if [ -f /sys/class/power_supply/BAT0/power_now ]; then
+        local power_uw=$(cat /sys/class/power_supply/BAT0/power_now)
+        power_watts=$(awk "BEGIN {printf \"%.1fW\", $power_uw / 1000000}")
+    else
+        power_watts="N/A"
+    fi
 }
 
 timedate() {
@@ -166,6 +175,10 @@ bluetooth() {
     bluetooth_battery="${batteries% }"
 }
 
+json_escape() {
+    printf '%s' "$1" | tr -d '\000-\037' | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
 # Output JSON header for i3bar protocol
 echo '{"version":1}'
 echo '['
@@ -187,6 +200,14 @@ do
   bluetooth
   wifi
   vpn
+
+  top_process=$(json_escape "$top_process")
+  top_ram_process=$(json_escape "$top_ram_process")
+  dns=$(json_escape "$dns")
+  bluetooth=$(json_escape "$bluetooth")
+  bluetooth_battery=$(json_escape "$bluetooth_battery")
+  wifi=$(json_escape "$wifi")
+  volume=$(json_escape "$volume")
 
   # Low battery notification
   if [ "$capacity_num" -le 20 ] && [ "$status" = "Discharging" ] && [ -z "$low_battery_notified" ]; then
@@ -271,6 +292,20 @@ do
       layout_color=',"color":"#FFFF00"'  # yellow
   fi
 
+  # Power watts color
+  power_num=$(echo "$power_watts" | grep -oP '[\d.]+' | head -1)
+  if [ -n "$power_num" ]; then
+      if awk "BEGIN {exit !($power_num < 10)}"; then
+          power_color=',"color":"#00FF00"'  # green - low power
+      elif awk "BEGIN {exit !($power_num < 30)}"; then
+          power_color=',"color":"#FFFF00"'  # yellow - medium power
+      else
+          power_color=',"color":"#FF6600"'  # orange - high power
+      fi
+  else
+      power_color=""
+  fi
+
   # CPU usage color
   cpu_usage_num=$(echo "$cpu_usage" | grep -oP '\d+')
   if [ "$cpu_usage_num" -gt 90 ] 2>/dev/null; then
@@ -324,6 +359,8 @@ do
     {\"full_text\":\"$capacity\"$capacity_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$status\"$status_color,\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$power_watts\"$power_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$layout\"$layout_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | \",\"separator\":false,\"separator_block_width\":0},
