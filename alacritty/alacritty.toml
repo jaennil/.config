@@ -3,9 +3,14 @@ background = "0x000000"
 
 [font]
 normal = { family = "FiraCodeNerdFont" }
-size = 6
+size = 12
 
 [general]
 import = [
     "~/.config/alacritty/themes/themes/hyper.toml"
 ]
+
+# [[keyboard.bindings]]
+# key = "Return"
+# mods = "Shift"
+# chars = "\x1b\r"
