@@ -11,3 +11,5 @@ set -gx BROWSER zen-browser
 if test -z "$DISPLAY" -a (tty) = "/dev/tty1"
     exec ssh-agent startx
 end
+set -gx EDITOR nvim
+set -gx PATH $PATH ~/.npm-global/bin
