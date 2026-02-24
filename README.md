@@ -4,6 +4,10 @@ add this line to ~/.zshenv / .bashrc / other shell:
 
 `export XINITRC=/home/jaennil/.config/.xinitrc`
 
+### .xprofile inside .config
+
+`ln -s ~/.config/xprofile ~/.xprofile`
+
 ### Tmux
 
 `git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm`
@@ -31,6 +35,7 @@ install `gnome-themes-extra`, `adwaita-qt5-git`$^{AUR}$, `adwaita-qt6-git`$^{AUR
 ### Keyboard
 
 sudo cp ~/.config/keyboard/wayland/jaennil_rpd /usr/share/X11/xkb/symbols/
+
 setxkbmap jaennil_rpd,ru -option "grp:alt_shift_toggle,ctrl:swapcaps"
 
 ### Gnome workspaces
@@ -67,6 +72,7 @@ gsettings set org.gnome.desktop.wm.preferences focus-mode 'sloppy'
 ### fish as default shell
 
 echo "$(command -v fish)" | sudo tee -a /etc/shells
+
 chsh -s "$(command -v fish)"
 
 Then logout and log back in
@@ -104,5 +110,14 @@ ln -s /opt/Telegram/Telegram ~/.local/bin/telegram
 
 ```
 ln -s ~/.config/CLAUDE.md ~/.claude/CLAUDE.md
+ln -s ~/.config/CLAUDE.md ~/.claude-personal/CLAUDE.md
 ln -s ~/.config/.claude/settings.local.json ~/.claude/settings.local.json
 ```
+
+### i3 status bar
+
+Custom status bar script for i3wm with CPU, RAM, battery, WiFi, VPN, Bluetooth, DNS indicators.
+
+### Yazi git plugin
+
+ya pkg add yazi-rs/plugins:git
