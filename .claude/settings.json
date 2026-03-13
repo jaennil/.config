@@ -86,7 +86,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.session_id' | { read -r sid; if [ -f \"/tmp/claude-notify-$sid\" ]; then nid=$(cat \"/tmp/claude-notify-$sid\"); gdbus call --session --dest org.freedesktop.Notifications --object-path /org/freedesktop/Notifications --method org.freedesktop.Notifications.CloseNotification \"$nid\" >/dev/null 2>&1; rm -f \"/tmp/claude-notify-$sid\"; fi; }",
+            "command": "~/.config/.claude/notify.sh close",
             "async": true
           }
         ]
@@ -98,7 +98,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.session_id' | { read -r sid; if [ -f \"/tmp/claude-notify-$sid\" ]; then nid=$(cat \"/tmp/claude-notify-$sid\"); gdbus call --session --dest org.freedesktop.Notifications --object-path /org/freedesktop/Notifications --method org.freedesktop.Notifications.CloseNotification \"$nid\" >/dev/null 2>&1; rm -f \"/tmp/claude-notify-$sid\"; fi; }",
+            "command": "~/.config/.claude/notify.sh close",
             "async": true
           }
         ]
@@ -110,7 +110,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '(.cwd | split(\"/\") | last), .message, .session_id' | { read -r cwd; read -r msg; read -r sid; title=$(tmux display-message -p '#S' 2>/dev/null) || title=\"$cwd\"; nid=$(gdbus call --session --dest org.freedesktop.Notifications --object-path /org/freedesktop/Notifications --method org.freedesktop.Notifications.Notify CC 0 '' \"$title\" \"$msg\" '[]' \"{'urgency': <byte 2>}\" 0 | grep -oP '(?<=uint32 )\\d+'); echo \"$nid\" > \"/tmp/claude-notify-$sid\"; }"
+            "command": "~/.config/.claude/notify.sh show"
           }
         ]
       }
