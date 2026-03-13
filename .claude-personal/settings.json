@@ -1,0 +1,116 @@
+{
+  "enabledPlugins": {
+    "gopls-lsp@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true
+  },
+  "effortLevel": "low",
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(cat:*)",
+      "Bash(wc:*)",
+      "Bash(which:*)",
+      "Bash(whoami:*)",
+      "Bash(pwd:*)",
+      "Bash(file:*)",
+      "Bash(stat:*)",
+      "Bash(du:*)",
+      "Bash(df:*)",
+      "Bash(uname:*)",
+      "Bash(env:*)",
+      "Bash(echo:*)",
+      "Bash(lsusb:*)",
+      "Bash(lsblk:*)",
+      "Bash(pgrep:*)",
+      "Bash(ps:*)",
+      "Bash(free:*)",
+      "Bash(uptime:*)",
+      "Bash(date:*)",
+      "Bash(id:*)",
+      "Bash(groups:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git remote:*)",
+      "Bash(git show:*)",
+      "Bash(git stash list:*)",
+      "Bash(git stash show:*)",
+      "Bash(git tag:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git config --get:*)",
+      "Bash(git config --list:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git blame:*)",
+      "Bash(git shortlog:*)",
+      "Bash(git describe:*)",
+      "Bash(git cherry:*)",
+      "Bash(git reflog:*)",
+      "Bash(gh:*)",
+      "Bash(glab:*)",
+      "Bash(systemctl:*)",
+      "Bash(pacman -Q:*)",
+      "Bash(pacman -Ss:*)",
+      "Bash(tar tzf:*)",
+      "Bash(tar tf:*)",
+      "Bash(wpctl:*)",
+      "Bash(pactl:*)",
+      "Bash(amixer:*)",
+      "Bash(node --version:*)",
+      "Bash(python3 --version:*)",
+      "Bash(go version:*)",
+      "Bash(rustc --version:*)",
+      "Bash(cargo --version:*)",
+      "Bash(cargo check:*)",
+      "Bash(cargo test:*)",
+      "Bash(cargo build:*)",
+      "Bash(cargo clippy:*)",
+      "Bash(cargo fmt:*)",
+      "Bash(cargo run:*)",
+      "Bash(cargo doc:*)",
+      "WebSearch",
+      "Bash(jira issue view:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.config/.claude/notify.sh close",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.config/.claude/notify.sh close",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.config/.claude/notify.sh show"
+          }
+        ]
+      }
+    ]
+  }
+}
