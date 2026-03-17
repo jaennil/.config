@@ -77,7 +77,7 @@
     ]
   },
   "hooks": {
-    "PreToolUse": [
+"PreToolUse": [
       {
         "matcher": "*",
         "hooks": [
