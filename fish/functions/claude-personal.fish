@@ -1,3 +1,3 @@
 function claude-personal
-    env CLAUDE_CONFIG_DIR=~/.claude-personal claude $argv
+    env CLAUDE_CONFIG_DIR=$HOME/.claude-personal claude $argv
 end
