@@ -40,15 +40,19 @@ case "$ACTION" in
 
     # Listen for action in background
     (
+      LAST_NID=""
       dbus-monitor --session "interface='org.freedesktop.Notifications',member='ActionInvoked'" \
         "interface='org.freedesktop.Notifications',member='NotificationClosed'" 2>/dev/null \
       | while IFS= read -r line; do
-          if echo "$line" | grep -q "string \"focus\""; then
+          if echo "$line" | grep -q "uint32 $NID"; then
+            LAST_NID="$NID"
+          fi
+          if [ "$LAST_NID" = "$NID" ] && echo "$line" | grep -q "string \"focus\""; then
             [ -n "$CLIENT" ] && [ -n "$TMUX_SESSION" ] && \
               tmux switch-client -c "$CLIENT" -t "$TMUX_SESSION" 2>/dev/null
             break
           fi
-          if echo "$line" | grep -q "member=NotificationClosed"; then
+          if [ "$LAST_NID" = "$NID" ] && echo "$line" | grep -q "member=NotificationClosed"; then
             break
           fi
         done
