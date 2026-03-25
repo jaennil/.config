@@ -44,7 +44,7 @@ case "$ACTION" in
       dbus-monitor --session "interface='org.freedesktop.Notifications',member='ActionInvoked'" \
         "interface='org.freedesktop.Notifications',member='NotificationClosed'" 2>/dev/null \
       | while IFS= read -r line; do
-          if echo "$line" | grep -q "uint32 $NID"; then
+          if echo "$line" | grep -qE "uint32 $NID([^0-9]|$)"; then
             LAST_NID="$NID"
           fi
           if [ "$LAST_NID" = "$NID" ] && echo "$line" | grep -q "string \"focus\""; then
