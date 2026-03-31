@@ -3,6 +3,7 @@
 # Usage: notify.sh show|close (reads JSON from stdin)
 # Left click: dismiss
 # Middle click: focus tmux session
+# Right click: context menu (snooze 5s)
 
 ACTION="$1"
 INPUT=$(cat)
@@ -20,21 +21,44 @@ start_listener() {
 
   (
     dbus-monitor --session \
-      "interface='org.freedesktop.Notifications',member='ActionInvoked'" \
-      "interface='org.freedesktop.Notifications',member='NotificationClosed'" 2>/dev/null \
+      "interface='org.freedesktop.Notifications',member='ActionInvoked'" 2>/dev/null \
     | while IFS= read -r line; do
         if echo "$line" | grep -q "member=ActionInvoked"; then
           read -r id_line
           FIRED_NID=$(echo "$id_line" | grep -oP '(?<=uint32 )\d+')
           read -r action_line
-          if echo "$action_line" | grep -q "string \"focus\""; then
-            MAP="/tmp/claude-notify-nid-$FIRED_NID"
-            if [ -f "$MAP" ]; then
-              TMUX_SESSION=$(cut -d: -f1 < "$MAP")
-              CLIENT=$(cut -d: -f2 < "$MAP")
-              [ -n "$CLIENT" ] && [ -n "$TMUX_SESSION" ] && \
-                tmux switch-client -c "$CLIENT" -t "$TMUX_SESSION" 2>/dev/null
-            fi
+          MAP="/tmp/claude-notify-nid-$FIRED_NID"
+          [ -f "$MAP" ] || continue
+          INFO=$(cat "$MAP")
+          TMUX_SESSION=$(echo "$INFO" | cut -d: -f1)
+          CLIENT=$(echo "$INFO" | cut -d: -f2)
+          NOTIFY_SID=$(echo "$INFO" | cut -d: -f3)
+
+          if echo "$action_line" | grep -q "string \"default\""; then
+            [ -n "$CLIENT" ] && [ -n "$TMUX_SESSION" ] && \
+              tmux switch-client -c "$CLIENT" -t "$TMUX_SESSION" 2>/dev/null
+
+          elif echo "$action_line" | grep -q "string \"snooze\""; then
+            # Close current notification
+            gdbus call --session \
+              --dest org.freedesktop.Notifications \
+              --object-path /org/freedesktop/Notifications \
+              --method org.freedesktop.Notifications.CloseNotification \
+              "$FIRED_NID" >/dev/null 2>&1
+            rm -f "$MAP"
+            # Re-create after 5s
+            (
+              sleep 5
+              NEW_NID=$(gdbus call --session \
+                --dest org.freedesktop.Notifications \
+                --object-path /org/freedesktop/Notifications \
+                --method org.freedesktop.Notifications.Notify \
+                CC 0 '' "$TMUX_SESSION" "snoozed — needs attention" \
+                '["default", "Focus", "snooze", "Snooze 5s"]' "{'urgency': <byte 2>}" 0 \
+                | grep -oP '(?<=uint32 )\d+')
+              echo "$TMUX_SESSION:$CLIENT:$NOTIFY_SID" > "/tmp/claude-notify-nid-$NEW_NID"
+              [ -n "$NOTIFY_SID" ] && echo "$NEW_NID" > "/tmp/claude-notify-$NOTIFY_SID"
+            ) &
           fi
         fi
       done
@@ -66,11 +90,11 @@ case "$ACTION" in
       --dest org.freedesktop.Notifications \
       --object-path /org/freedesktop/Notifications \
       --method org.freedesktop.Notifications.Notify \
-      CC 0 '' "$TITLE" "$MSG" '["focus", "Focus"]' "{'urgency': <byte 2>}" 0 \
+      CC 0 '' "$TITLE" "$MSG" '["default", "Focus", "snooze", "Snooze 5s"]' "{'urgency': <byte 2>}" 0 \
       | grep -oP '(?<=uint32 )\d+')
 
     echo "$NID" > "$MARKER"
-    echo "$TMUX_SESSION:$CLIENT" > "/tmp/claude-notify-nid-$NID"
+    echo "$TMUX_SESSION:$CLIENT:$SID" > "/tmp/claude-notify-nid-$NID"
 
     start_listener
     ;;
