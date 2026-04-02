@@ -112,6 +112,7 @@ ln -s /opt/Telegram/Telegram ~/.local/bin/telegram
 ln -s ~/.config/CLAUDE.md ~/.claude/CLAUDE.md
 ln -s ~/.config/CLAUDE.md ~/.claude-personal/CLAUDE.md
 ln -s ~/.config/.claude/settings.local.json ~/.claude/settings.local.json
+ln -s ~/.config/.claude/statusline-command.sh ~/.claude/statusline-command.sh
 ```
 
 ### i3 status bar
