@@ -115,6 +115,12 @@ ln -s ~/.config/.claude/settings.local.json ~/.claude/settings.local.json
 ln -s ~/.config/.claude/statusline-command.sh ~/.claude/statusline-command.sh
 ```
 
+### Codex
+
+```
+ln -s ~/.config/.codex/AGENTS.md ~/.codex/AGENTS.md
+```
+
 ### i3 status bar
 
 Custom status bar script for i3wm with CPU, RAM, battery, WiFi, VPN, Bluetooth, DNS indicators.
