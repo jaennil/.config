@@ -77,6 +77,26 @@ chsh -s "$(command -v fish)"
 
 Then logout and log back in
 
+### Locale
+
+If day names in i3 status bar start rendering as squares, locale likely switched away from English and the current bar font does not support Cyrillic well.
+
+Preferred setup for this config:
+
+```bash
+sudo localectl set-locale LANG=en_US.UTF-8 LC_TIME=en_US.UTF-8
+```
+
+Then log out and log back in.
+
+If you want to force it only for your user session, export it in your shell config:
+
+```bash
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LC_TIME=en_US.UTF-8
+```
+
 ### Alacritty theme
 
 git clone https://github.com/alacritty/alacritty-theme ~/.config/alacritty/themes

@@ -49,7 +49,7 @@ battery() {
 }
 
 timedate() {
-    timedate=$(date +"%A %d-%m-%Y %H:%M:%S")
+    timedate=$(LC_ALL=en_US.UTF-8 date +"%A %d-%m-%Y %H:%M:%S")
 }
 
 brightness() {

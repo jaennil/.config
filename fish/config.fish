@@ -4,6 +4,10 @@ end
 
 fish_better_vi_key_bindings
 
+set -gx LANG en_US.UTF-8
+set -gx LC_ALL en_US.UTF-8
+set -gx LC_TIME en_US.UTF-8
+
 set -gx PATH $PATH ~/.local/share/nvim/mason/bin
 set -gx PATH $PATH ~/.local/bin
 set -gx BROWSER zen-browser
