@@ -87,6 +87,8 @@ cosmic/
 enchant/
 evolution/
 fish/functions/amojodb.fish
+fish/functions/amojocbd.fish
+fish/functions/amojosbd.fish
 fish/functions/coredb.fish
 gedit/
 glib-2.0/
