@@ -1,6 +1,6 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
-SETUVAR --export BROWSER:qutebrowser
+SETUVAR --export BROWSER:firefox
 SETUVAR --export EDITOR:nvim
 SETUVAR --export GIT_CONFIG_GLOBAL:/home/jaennil/\x2econfig/\x2egitconfig
 SETUVAR --export GTK2_RC_FILES:/usr/share/themes/Adwaita\x2ddark/gtk\x2d2\x2e0/gtkrc

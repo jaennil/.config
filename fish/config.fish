@@ -10,7 +10,7 @@ set -gx LC_TIME en_US.UTF-8
 
 set -gx PATH $PATH ~/.local/share/nvim/mason/bin
 set -gx PATH $PATH ~/.local/bin
-set -gx BROWSER zen-browser
+set -gx BROWSER firefox
 
 if test -z "$DISPLAY" -a (tty) = "/dev/tty1"
     exec ssh-agent startx
