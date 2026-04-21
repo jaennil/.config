@@ -12,7 +12,7 @@ if [[ -n "${TMUX_SOCKET_PATH:-}" ]]; then
     tmux_cmd+=(-S "$TMUX_SOCKET_PATH")
 fi
 
-ORDER_FILE="${TMUX_SESSION_ORDER_FILE:-$HOME/.config/tmux/session-order}"
+ORDER_FILE="${TMUX_SESSION_PIN_FILE:-${TMUX_SESSION_ORDER_FILE:-$HOME/.config/tmux/session-pins}}"
 
 tm() {
     "${tmux_cmd[@]}" "$@"
@@ -78,7 +78,11 @@ write_order() {
 
     dir=$(dirname -- "$ORDER_FILE")
     mkdir -p "$dir"
-    printf '%s\n' "${sessions[@]}" >"$ORDER_FILE"
+    if (( ${#sessions[@]} == 0 )); then
+        : >"$ORDER_FILE"
+    else
+        printf '%s\n' "${sessions[@]}" >"$ORDER_FILE"
+    fi
 }
 
 sync_order() {
@@ -102,12 +106,6 @@ sync_order() {
             fi
         done <"$ORDER_FILE"
     fi
-
-    for line in "${sessions[@]}"; do
-        if ! contains_name "$line" "${ordered[@]:-}"; then
-            ordered+=("$line")
-        fi
-    done
 
     write_order "${ordered[@]}"
 }
@@ -157,21 +155,21 @@ move_session() {
     done
 
     if (( target_index < 0 )); then
-        echo "session not found: $target" >&2
-        exit 1
+        display_notice "Pin session first"
+        return
     fi
 
     case "$direction" in
         up)
             if (( target_index == 0 )); then
-                display_notice "Session is already first"
+                display_notice "Pinned session is already first"
                 return
             fi
             other_index=$((target_index - 1))
             ;;
         down)
             if (( target_index == ${#sessions[@]} - 1 )); then
-                display_notice "Session is already last"
+                display_notice "Pinned session is already last"
                 return
             fi
             other_index=$((target_index + 1))
@@ -211,7 +209,7 @@ rename_session() {
     done
 
     if (( found == 0 )); then
-        sessions+=("$new_name")
+        return
     fi
 
     write_order "${sessions[@]}"

@@ -81,6 +81,7 @@ tuna/
 libvirt/
 tmux/plugins/
 tmux/session-order
+tmux/session-pins
 tmux/session-picker-ui/target/
 .gsd-keyboard.settings-ported
 Claude/

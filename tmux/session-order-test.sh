@@ -6,7 +6,7 @@ SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 HELPER="$SCRIPT_DIR/session-order.sh"
 SOCKET_BASE="session-order-test-$$"
 SOCKET="$SOCKET_BASE"
-ORDER_FILE="/tmp/${SOCKET_BASE}.order"
+ORDER_FILE="/tmp/${SOCKET_BASE}.pins"
 
 tm() {
     tmux -L "$SOCKET" "$@"
@@ -24,7 +24,7 @@ cleanup() {
 reset_server() {
     cleanup
     SOCKET="${SOCKET_BASE}-${RANDOM}"
-    ORDER_FILE="/tmp/${SOCKET}.order"
+    ORDER_FILE="/tmp/${SOCKET}.pins"
 }
 
 assert_eq() {
@@ -70,82 +70,90 @@ new_sessions() {
     done
 }
 
-test_sync_keeps_explicit_order_and_appends_new_sessions() {
+test_sync_keeps_only_existing_pins() {
     reset_server
     new_sessions dashboard config doc
 
     printf 'dashboard\nconfig\n' >"$ORDER_FILE"
     assert_success "sync should succeed" run_helper sync
     assert_eq \
-        "dashboard,config,doc" \
+        "dashboard,config" \
         "$(session_list)" \
-        "sync should keep known order and append new sessions alphabetically"
+        "sync should keep only pinned sessions that still exist"
 }
 
 test_move_down_and_up() {
     reset_server
     new_sessions dashboard config doc
+    printf 'dashboard\nconfig\n' >"$ORDER_FILE"
     run_helper sync >/dev/null
 
     assert_success "move down by session name" run_helper down config >/dev/null
     assert_eq \
-        "dashboard,config,doc" \
+        "dashboard,config" \
         "$(session_list)" \
-        "down should swap with the next session"
+        "down should keep the last pinned session in place"
 
     assert_success "move up by session name" run_helper up config >/dev/null
     assert_eq \
-        "config,dashboard,doc" \
+        "config,dashboard" \
         "$(session_list)" \
-        "up should swap with the previous session"
+        "up should swap pinned sessions"
 }
 
 test_move_respects_boundaries() {
     reset_server
     new_sessions dashboard config doc
+    printf 'config\ndashboard\n' >"$ORDER_FILE"
     run_helper sync >/dev/null
 
     assert_success "first session up is a no-op" run_helper up config >/dev/null
     assert_eq \
-        "config,dashboard,doc" \
+        "config,dashboard" \
         "$(session_list)" \
-        "moving the first session up should keep order unchanged"
+        "moving the first pinned session up should keep order unchanged"
 
-    assert_success "last session down is a no-op" run_helper down doc >/dev/null
+    assert_success "last pinned session down is a no-op" run_helper down dashboard >/dev/null
     assert_eq \
-        "config,dashboard,doc" \
+        "config,dashboard" \
         "$(session_list)" \
-        "moving the last session down should keep order unchanged"
+        "moving the last pinned session down should keep order unchanged"
 }
 
 test_rename_preserves_position() {
     reset_server
     new_sessions dashboard config doc
+    printf 'dashboard\nconfig\n' >"$ORDER_FILE"
     run_helper sync >/dev/null
 
     assert_success "rename should succeed" run_helper rename dashboard dotfiles >/dev/null
     assert_eq \
-        "config,dotfiles,doc" \
+        "dotfiles,config" \
         "$(session_list)" \
-        "rename should keep the renamed session in place"
+        "rename should keep the pinned session in place"
 }
 
-test_move_missing_session_fails() {
+test_move_unpinned_session_is_noop() {
     reset_server
-    new_sessions dashboard config
+    new_sessions dashboard config doc
+    printf 'dashboard\nconfig\n' >"$ORDER_FILE"
     run_helper sync >/dev/null
 
-    assert_failure "moving a missing session should fail" run_helper up missing
+    assert_success "moving an unpinned session should be a no-op" run_helper up doc >/dev/null
+    assert_eq \
+        "dashboard,config" \
+        "$(session_list)" \
+        "moving an unpinned session should not change pinned order"
 }
 
 main() {
     trap cleanup EXIT
 
-    test_sync_keeps_explicit_order_and_appends_new_sessions
+    test_sync_keeps_only_existing_pins
     test_move_down_and_up
     test_move_respects_boundaries
     test_rename_preserves_position
-    test_move_missing_session_fails
+    test_move_unpinned_session_is_noop
 
     printf 'session-order tests passed\n'
 }
