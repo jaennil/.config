@@ -80,6 +80,8 @@ telebit/
 tuna/
 libvirt/
 tmux/plugins/
+tmux/session-order
+tmux/session-picker-ui/target/
 .gsd-keyboard.settings-ported
 Claude/
 cosmic-initial-setup-done
