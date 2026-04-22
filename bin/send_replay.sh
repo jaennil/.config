@@ -47,5 +47,15 @@ response=$(
         "${API_BASE}/bot$TOKEN/sendDocument"
 )
 
+if ! printf '%s\n' "$response" | grep -Eq '"ok":[[:space:]]*true'; then
+    log "Upload returned non-ok response: $response"
+    printf '%s\n' "$response"
+    exit 1
+fi
+
 log "Upload successful: $response"
+
+rm -f -- "$FILE"
+log "Deleted local file: $FILE"
+
 printf '%s\n' "$response"
