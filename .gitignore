@@ -85,6 +85,8 @@ tmux/session-pins
 tmux/session-picker-ui/target/
 .gsd-keyboard.settings-ported
 Claude/
+telegram-bot-api-data/
+send_replay.env
 cosmic-initial-setup-done
 cosmic/
 enchant/

@@ -1,0 +1,11 @@
+[Unit]
+Description=Write current time for OBS overlay
+
+[Service]
+Type=simple
+ExecStart=/home/jaennil/.config/bin/obs-time-writer.sh
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=default.target

@@ -148,3 +148,21 @@ Custom status bar script for i3wm with CPU, RAM, battery, WiFi, VPN, Bluetooth, 
 ### Yazi git plugin
 
 ya pkg add yazi-rs/plugins:git
+
+### OBS replay to Telegram
+
+Tracked files:
+
+`~/.config/bin/send_replay.sh`
+
+`~/.config/obs/replay_to_telegram.lua`
+
+Secrets stay local in:
+
+`~/.config/send_replay.env`
+
+Template:
+
+`~/.config/send_replay.env.example`
+
+This keeps bot token and chat ID out of git while preserving the scripts in the repo.
