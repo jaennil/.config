@@ -154,7 +154,7 @@ vpn() {
 }
 
 bluetooth() {
-    local devices=$(bluetoothctl devices Connected | awk '{print $2}')
+    local devices=$(timeout 1s bluetoothctl devices Connected 2>/dev/null | awk '{print $2}')
     if [ -z "$devices" ]; then
         bluetooth="-"
         bluetooth_battery=""
@@ -164,10 +164,11 @@ bluetooth() {
     local names=""
     local batteries=""
     for mac in $devices; do
-        local name=$(bluetoothctl info "$mac" | awk -F': ' '/Name:/ {print $2}')
+        local name=$(timeout 1s bluetoothctl info "$mac" 2>/dev/null | awk -F': ' '/Name:/ {print $2}')
+        [ -z "$name" ] && name="$mac"
         names="${names}${name}, "
 
-        local bat=$(upower -e 2>/dev/null | grep -i "${mac//:/_}" | xargs -I{} upower -i {} 2>/dev/null | awk '/percentage:/ {print $2}' | tr -d '%')
+        local bat=$(timeout 1s upower -e 2>/dev/null | grep -i "${mac//:/_}" | xargs -r -I{} timeout 1s upower -i {} 2>/dev/null | awk '/percentage:/ {print $2}' | tr -d '%')
         [ -n "$bat" ] && batteries="${batteries}${bat}% " || batteries="${batteries}N/A "
     done
 
