@@ -1,0 +1,107 @@
+model = "gpt-5.4-mini"
+model_reasoning_effort = "medium"
+notify = ["/home/jaennil/.config/.claude/notify-codex.sh"]
+
+[projects."/home/jaennil/dev/uni/guide_helper"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/dev/work/fl/kwork"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/dev/pet/homelab-infra"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/dev/pet/life-dashboard"]
+trust_level = "trusted"
+
+[projects."/home/jaennil"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/dev/pet/quick-stickers-tg-bot"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/.config"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/dev/work/fl/kwork/tonnag"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/dev/work/fl/keramix"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/dev/work/fl/kwork/homidomi"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/dev/work/fl/kwork/sphagnum"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/home"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/dev/work/fl/kwork/tinus_import"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/dev/work/fl/kwork/alex_1C"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/dev/work/fl/limkorm"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/dev/money"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/dev/work/fl/kwork/mds_slider"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/life/diary"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/dev/work/fl/borisov/wp"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/life/checkup"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/life/muaythai"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/dev/work/fl/kwork/maxallure"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/life/mts-link"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/dev/pet/vibecoding"]
+trust_level = "trusted"
+
+[projects."/home/jaennil/dev/work/fl/borisov/mskblago"]
+trust_level = "trusted"
+
+[features]
+hooks = true
+
+[notice]
+hide_rate_limit_model_nudge = true
+
+[notice.model_migrations]
+"gpt-5.1-codex-mini" = "gpt-5.4"
+
+[tui]
+status_line = ["current-dir", "five-hour-limit", "weekly-limit", "model-with-reasoning", "context-remaining", "git-branch", "context-used", "context-window-size", "used-tokens", "total-input-tokens", "total-output-tokens", "fast-mode"]
+
+[tui.model_availability_nux]
+"gpt-5.5" = 4
+
+[hooks.state]
+
+[hooks.state."/home/jaennil/.codex/hooks.json:post_tool_use:0:0"]
+trusted_hash = "sha256:c04004f9c82211ccd8f8f77a5a64cb09a6ccf476ffbef76afeb16c0b62c71f69"
+
+[hooks.state."/home/jaennil/.codex/hooks.json:pre_tool_use:0:0"]
+trusted_hash = "sha256:19ce531d75e7f313396a56d66ad32b99d14ff6b9b4bb9366174956b453247151"
+
+[hooks.state."/home/jaennil/.codex/hooks.json:stop:0:0"]
+trusted_hash = "sha256:e32b78334d02e40c69b23ecca86c1b59ee14968c7628601e5e02a421b0e3b645"
+
+[hooks.state."/home/jaennil/.codex/hooks.json:user_prompt_submit:0:0"]
+trusted_hash = "sha256:15d5f0ce31bf41c86d916f0a17328c01eb23ae1e993567ec0b80b888f473f07b"
