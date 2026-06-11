@@ -1,0 +1,76 @@
+# ptu keybindings configuration
+# Customize any keybinding below. Delete a line to use the default.
+#
+# Key format:
+#   Single char:    "j", "?", "G", "+"
+#   With modifier:  "Ctrl+f", "Alt+j", "Shift+G"
+#   Special keys:   "Esc", "Tab", "Enter", "Backspace", "Space", "F1".."F12"
+#   Multiple keys:  ["F1", "Alt+1"]
+
+[keys.global]
+toggle_help = "?"
+quit = "Esc"
+cycle_focus = "Tab"
+focus_down = "Alt+j"
+focus_up = "Alt+k"
+focus_right = "Alt+l"
+focus_left = "Alt+h"
+
+[keys.tabs]
+search = ["F1", "Alt+1", "Alt++"]
+installed = ["F2", "Alt+2", "Alt+["]
+
+[keys.search_input]
+toggle_search_mode = "Ctrl+f"
+search_files = "Enter"
+delete_word = "Ctrl+w"
+delete_char = "Backspace"
+
+[keys.packages_table]
+next = "j"
+previous = "k"
+first = "g"
+last = "G"
+install = "i"
+remove = "r"
+batch_install = "I"
+batch_remove = "R"
+multi_select = "Space"
+filter_mode = "f"
+name_filter = "/"
+
+[keys.packages_table.filter]
+cycle_install = "i"
+toggle_aur = "a"
+toggle_pacman = "p"
+clear_all = "c"
+exit = "Esc"
+
+[keys.installed_table]
+next = "j"
+previous = "k"
+first = "g"
+last = "G"
+cycle_sort = "s"
+toggle_sort_direction = "S"
+remove = "r"
+batch_remove = "R"
+multi_select = "Space"
+filter = "/"
+toggle_update_filter = "u"
+toggle_orphan_filter = "o"
+refresh = "Ctrl+r"
+system_upgrade = "U"
+
+[keys.package_info]
+scroll_down = "j"
+scroll_up = "k"
+page_down = "Ctrl+d"
+page_up = "Ctrl+u"
+toggle_section = "Enter"
+open_url = "o"
+
+[keys.help]
+close = ["?", "Esc"]
+scroll_down = "j"
+scroll_up = "k"
