@@ -77,6 +77,16 @@ chsh -s "$(command -v fish)"
 
 Then logout and log back in
 
+### Run docker without sudo
+
+Add your user to the `docker` group:
+
+```bash
+sudo usermod -aG docker "$USER"
+```
+
+Then log out and log back in.
+
 ### Locale
 
 If day names in i3 status bar start rendering as squares, locale likely switched away from English and the current bar font does not support Cyrillic well.
