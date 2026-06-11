@@ -205,6 +205,8 @@ client.focused    #4C7899 #285577 #FFFFFF #2E9EF4 #00FF00
 # disables window title bar
 new_window 1pixel
 
+for_window [class="BrightnessSlider"] floating enable, sticky enable, border pixel 1, resize set 320 80, move position mouse
+
 assign [class=$browser] $ws2
 assign [class="gitkraken"] $ws6
 assign [class="GitKraken"] $ws6
