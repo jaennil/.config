@@ -21,28 +21,92 @@ top_process=""
 top_ram_process=""
 power_watts=""
 
-get_layout() {
-kb=$(xset -q | grep -oP '\d{8}')
+has_cmd() {
+    command -v "$1" >/dev/null 2>&1
+}
 
-  case $kb in
-    "00001000")
-    layout="ru"
-    ;;
-    "00000000")
-    layout="en"
-    ;;
-  esac
+missing() {
+    printf 'missing: %s' "$1"
+}
+
+is_number() {
+    [[ "$1" =~ ^[0-9]+$ ]]
+}
+
+get_layout() {
+  layout=""
+
+  if has_cmd xset; then
+    kb=$(xset -q 2>/dev/null | grep -oP '\d{8}' | head -1)
+
+    case $kb in
+      "00001000")
+      layout="ru"
+      ;;
+      "00000000")
+      layout="en"
+      ;;
+    esac
+
+    [ -n "$layout" ] && return
+  fi
+
+  if has_cmd setxkbmap; then
+    local active_layout=$(setxkbmap -query 2>/dev/null | awk '/layout:/ {print $2}' | awk -F, '{print $1}')
+    case "$active_layout" in
+      jaennil_rpd|us|en)
+        layout="en"
+        ;;
+      ru)
+        layout="ru"
+        ;;
+      "")
+        layout="unknown"
+        ;;
+      *)
+        layout="$active_layout"
+        ;;
+    esac
+    return
+  fi
+
+  layout=$(missing "xset/setxkbmap")
 }
 
 battery() {
-    capacity_num="$(cat /sys/class/power_supply/BAT0/capacity)"
+    local bat=""
+
+    if [ -d /sys/class/power_supply/BAT0 ]; then
+        bat="/sys/class/power_supply/BAT0"
+    else
+        for supply in /sys/class/power_supply/*; do
+            [ -d "$supply" ] || continue
+            [ "$(cat "$supply/type" 2>/dev/null)" = "Battery" ] || continue
+            bat="$supply"
+            break
+        done
+    fi
+
+    if [ -z "$bat" ]; then
+        capacity_num=""
+        capacity="no battery"
+        status=""
+        power_watts=""
+        return
+    fi
+
+    capacity_num="$(cat "$bat/capacity" 2>/dev/null)"
     capacity="${capacity_num}%"
-    status="$(cat /sys/class/power_supply/BAT0/status)"
+    status="$(cat "$bat/status" 2>/dev/null)"
 
     # Get power in watts
-    if [ -f /sys/class/power_supply/BAT0/power_now ]; then
-        local power_uw=$(cat /sys/class/power_supply/BAT0/power_now)
+    if [ -f "$bat/power_now" ]; then
+        local power_uw=$(cat "$bat/power_now")
         power_watts=$(awk "BEGIN {printf \"%.1fW\", $power_uw / 1000000}")
+    elif [ -f "$bat/current_now" ] && [ -f "$bat/voltage_now" ]; then
+        local current_ua=$(cat "$bat/current_now")
+        local voltage_uv=$(cat "$bat/voltage_now")
+        power_watts=$(awk "BEGIN {printf \"%.1fW\", ($current_ua * $voltage_uv) / 1000000000000}")
     else
         power_watts="N/A"
     fi
@@ -64,7 +128,28 @@ brightness() {
 }
 
 volume() {
-    volume=$(amixer sget Master | awk '/Front Left:/ {print $5 $6}')
+    volume=""
+
+    if has_cmd amixer; then
+        volume=$(amixer sget Master 2>/dev/null | awk '/Front Left:/ {print $5 $6; exit}')
+        [ -n "$volume" ] && return
+    fi
+
+    if has_cmd pactl; then
+        local vol=$(pactl get-sink-volume @DEFAULT_SINK@ 2>/dev/null | awk -F/ 'NR==1 {gsub(/[ \t]/, "", $2); print $2}')
+        local mute=$(pactl get-sink-mute @DEFAULT_SINK@ 2>/dev/null | awk '{print $2}')
+
+        if [ -n "$vol" ]; then
+            if [ "$mute" = "yes" ]; then
+                volume="${vol} [off]"
+            else
+                volume="${vol} [on]"
+            fi
+            return
+        fi
+    fi
+
+    volume=$(missing "amixer/pactl")
 }
 
 cpu_temp() {
@@ -132,21 +217,54 @@ top_ram_process() {
 }
 
 dns() {
-    dns=$(nmcli dev show | awk '/IP4.DNS/ {print $2}' | tr '\n' ' ' | sed 's/ $//' | sed 's/ /  /g')
-}
-
-wifi() {
-    local ssid=$(iwgetid -r 2>/dev/null)
-    if [ -n "$ssid" ]; then
-        local quality=$(awk 'NR==3 {printf "%.0f%%", $3*100/70}' /proc/net/wireless 2>/dev/null)
-        wifi="$ssid $quality"
+    if has_cmd nmcli; then
+        dns=$(nmcli dev show 2>/dev/null | awk '/IP4.DNS/ {print $2}' | tr '\n' ' ' | sed 's/ $//' | sed 's/ /  /g')
     else
-        wifi="down"
+        dns=$(missing "nmcli")
     fi
 }
 
+wifi() {
+    local ssid=""
+    local quality=""
+
+    if has_cmd iwgetid; then
+        ssid=$(iwgetid -r 2>/dev/null)
+    fi
+
+    if [ -n "$ssid" ]; then
+        quality=$(awk 'NR==3 {printf "%.0f%%", $3*100/70}' /proc/net/wireless 2>/dev/null)
+        wifi="$ssid $quality"
+        return
+    fi
+
+    if has_cmd nmcli; then
+        ssid=$(nmcli -t -f ACTIVE,SSID dev wifi 2>/dev/null | awk -F: '$1 == "yes" {print $2; exit}')
+        [ -n "$ssid" ] && quality=$(nmcli -t -f ACTIVE,SIGNAL dev wifi 2>/dev/null | awk -F: '$1 == "yes" {print $2 "%"; exit}')
+
+        if [ -n "$ssid" ]; then
+            wifi="$ssid $quality"
+            return
+        fi
+
+        if nmcli -t -f TYPE,STATE dev status 2>/dev/null | grep -q '^wifi:connected$'; then
+            wifi="connected"
+            return
+        fi
+    fi
+
+    if ! has_cmd iwgetid && ! has_cmd nmcli; then
+        wifi=$(missing "iwgetid/nmcli")
+        return
+    fi
+
+    wifi="down"
+}
+
 vpn() {
-    if nmcli -t -f TYPE,STATE connection show --active 2>/dev/null | grep -q "^vpn:"; then
+    if ! has_cmd nmcli; then
+        vpn=$(missing "nmcli")
+    elif nmcli -t -f TYPE,STATE connection show --active 2>/dev/null | grep -q "^vpn:"; then
         vpn="up"
     else
         vpn="down"
@@ -154,6 +272,12 @@ vpn() {
 }
 
 bluetooth() {
+    if ! has_cmd bluetoothctl; then
+        bluetooth=$(missing "bluetoothctl")
+        bluetooth_battery=""
+        return
+    fi
+
     local devices=$(timeout 1s bluetoothctl devices Connected 2>/dev/null | awk '{print $2}')
     if [ -z "$devices" ]; then
         bluetooth="-"
@@ -168,7 +292,10 @@ bluetooth() {
         [ -z "$name" ] && name="$mac"
         names="${names}${name}, "
 
-        local bat=$(timeout 1s upower -e 2>/dev/null | grep -i "${mac//:/_}" | xargs -r -I{} timeout 1s upower -i {} 2>/dev/null | awk '/percentage:/ {print $2}' | tr -d '%')
+        local bat=""
+        if has_cmd upower; then
+            bat=$(timeout 1s upower -e 2>/dev/null | grep -i "${mac//:/_}" | xargs -r -I{} timeout 1s upower -i {} 2>/dev/null | awk '/percentage:/ {print $2}' | tr -d '%')
+        fi
         [ -n "$bat" ] && batteries="${batteries}${bat}% " || batteries="${batteries}N/A "
     done
 
@@ -211,10 +338,10 @@ do
   volume=$(json_escape "$volume")
 
   # Low battery notification
-  if [ "$capacity_num" -le 20 ] && [ "$status" = "Discharging" ] && [ -z "$low_battery_notified" ]; then
+  if is_number "$capacity_num" && [ "$capacity_num" -le 20 ] && [ "$status" = "Discharging" ] && [ -z "$low_battery_notified" ]; then
       notify-send -u critical "Low Battery" "Battery at ${capacity_num}%"
       low_battery_notified="1"
-  elif [ "$capacity_num" -gt 20 ] || [ "$status" = "Charging" ]; then
+  elif { is_number "$capacity_num" && [ "$capacity_num" -gt 20 ]; } || [ "$status" = "Charging" ]; then
       low_battery_notified=""
   fi
 
@@ -228,7 +355,9 @@ do
   fi
 
   # Battery capacity color
-  if [ "$capacity_num" -lt 30 ]; then
+  if ! is_number "$capacity_num"; then
+      capacity_color=""
+  elif [ "$capacity_num" -lt 30 ]; then
       capacity_color=',"color":"#FF0000"'  # red
   elif [ "$capacity_num" -lt 60 ]; then
       capacity_color=',"color":"#FFFF00"'  # yellow
