@@ -38,6 +38,11 @@ sudo cp ~/.config/keyboard/wayland/jaennil_rpd /usr/share/X11/xkb/symbols/
 
 setxkbmap jaennil_rpd,ru -option "grp:alt_shift_toggle,ctrl:swapcaps"
 
+To keep this layout after login and after package updates, put the same
+`setxkbmap` line into `~/.config/.xinitrc` or `~/.xprofile`, so X11 applies it
+on every session start. If a package update replaces the custom symbol file,
+copy it back with the `sudo cp` command above.
+
 ### Gnome workspaces
 
 gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-10 "['<Super>0']"
