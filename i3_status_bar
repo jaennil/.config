@@ -33,6 +33,14 @@ is_number() {
     [[ "$1" =~ ^[0-9]+$ ]]
 }
 
+missing_color() {
+    case "$1" in
+        missing:*)
+            printf ',"color":"#FF0000"'
+            ;;
+    esac
+}
+
 get_layout() {
   layout=""
 
@@ -375,8 +383,14 @@ do
       cpu_color=',"color":"#00FF00"'  # green - normal
   fi
 
+  wifi_color=$(missing_color "$wifi")
+  bluetooth_color=$(missing_color "$bluetooth")
+  dns_color=$(missing_color "$dns")
+
   # Volume color
-  if echo "$volume" | grep -q "\[off\]"; then
+  if [ -n "$(missing_color "$volume")" ]; then
+      volume_color=$(missing_color "$volume")
+  elif echo "$volume" | grep -q "\[off\]"; then
       volume_color=',"color":"#00FF00"'  # green - muted
   else
       volume_color=',"color":"#FF6600"'  # orange - on
@@ -384,7 +398,9 @@ do
 
   # DNS color (red if stage)
   stage_dns="10.13.245.31"
-  if [ "$dns" = "$stage_dns" ]; then
+  if [ -n "$dns_color" ]; then
+      dns_suffix=""
+  elif [ "$dns" = "$stage_dns" ]; then
       dns_color=',"color":"#FF0000"'
       dns_suffix=" (stage)"
   else
@@ -409,14 +425,18 @@ do
   fi
 
   # VPN color
-  if [ "$vpn" = "up" ]; then
+  if [ -n "$(missing_color "$vpn")" ]; then
+      vpn_color=$(missing_color "$vpn")
+  elif [ "$vpn" = "up" ]; then
       vpn_color=',"color":"#FF6600"'  # orange
   else
       vpn_color=',"color":"#00FF00"'  # green
   fi
 
   # Layout color
-  if [ "$layout" = "en" ]; then
+  if [ -n "$(missing_color "$layout")" ]; then
+      layout_color=$(missing_color "$layout")
+  elif [ "$layout" = "en" ]; then
       layout_color=',"color":"#00FF00"'  # green
   else
       layout_color=',"color":"#FFFF00"'  # yellow
@@ -472,11 +492,11 @@ do
     {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$top_ram_process\",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | wifi: \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$wifi\",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$wifi\"$wifi_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | vpn: \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$vpn\"$vpn_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | bt: \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$bluetooth\",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$bluetooth\"$bluetooth_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$bluetooth_battery\"$bt_bat_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | dns: \",\"separator\":false,\"separator_block_width\":0},
