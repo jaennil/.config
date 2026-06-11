@@ -166,3 +166,6 @@ Template:
 `~/.config/send_replay.env.example`
 
 This keeps bot token and chat ID out of git while preserving the scripts in the repo.
+
+# шрифты для китайского в браузере
+sudo pacman -Syu --needed noto-fonts noto-fonts-cjk noto-fonts-extra ttf-dejavu ttf-liberation
