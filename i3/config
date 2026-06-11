@@ -24,6 +24,7 @@ set $terminal alacritty
 
 # Export DISPLAY to systemd for xdg-desktop-portal
 exec --no-startup-id systemctl --user import-environment DISPLAY XAUTHORITY
+exec_always --no-startup-id ~/.config/bin/enable-touchpad-tap-click.sh
 
 # Start XDG autostart .desktop files using dex. See also
 # https://wiki.archlinux.org/index.php/XDG_Autostart
