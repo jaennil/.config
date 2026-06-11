@@ -315,8 +315,19 @@ json_escape() {
     printf '%s' "$1" | tr -d '\000-\037' | sed 's/\\/\\\\/g; s/"/\\"/g'
 }
 
+handle_clicks() {
+    while IFS= read -r click_event; do
+        case "$click_event" in
+            *'"name":"brightness"'*)
+                ~/.config/bin/brightness-slider.sh >/dev/null 2>&1 &
+                ;;
+        esac
+    done
+}
+
+output_status() {
 # Output JSON header for i3bar protocol
-echo '{"version":1}'
+echo '{"version":1,"click_events":true}'
 echo '['
 echo '[]'
 
@@ -504,7 +515,7 @@ do
     {\"full_text\":\" | volume: \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$volume\"$volume_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | brightness: \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$brightness\",\"separator\":false,\"separator_block_width\":0},
+    {\"name\":\"brightness\",\"full_text\":\"$brightness\",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$capacity\"$capacity_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
@@ -518,3 +529,11 @@ do
   ]"
   sleep 0.2
 done
+}
+
+output_status &
+output_pid=$!
+
+trap 'kill "$output_pid" 2>/dev/null' EXIT INT TERM
+handle_clicks
+wait "$output_pid"
