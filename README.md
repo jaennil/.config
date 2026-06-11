@@ -43,6 +43,14 @@ To keep this layout after login and after package updates, put the same
 on every session start. If a package update replaces the custom symbol file,
 copy it back with the `sudo cp` command above.
 
+### Touchpad
+
+Install the Xorg libinput defaults:
+
+`sudo install -Dm644 ~/.config/xorg/30-touchpad.conf /etc/X11/xorg.conf.d/30-touchpad.conf`
+
+This keeps tap-to-click enabled after X11 restarts and package updates.
+
 ### Gnome workspaces
 
 gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-10 "['<Super>0']"
@@ -182,5 +190,6 @@ Template:
 
 This keeps bot token and chat ID out of git while preserving the scripts in the repo.
 
-# шрифты для китайского в браузере
-sudo pacman -Syu --needed noto-fonts noto-fonts-cjk noto-fonts-extra ttf-dejavu ttf-liberation
+### Browser and emoji fonts
+
+`sudo pacman -Syu --needed noto-fonts noto-fonts-cjk noto-fonts-extra noto-fonts-emoji ttf-dejavu ttf-liberation`
