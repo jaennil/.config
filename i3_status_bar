@@ -161,16 +161,36 @@ volume() {
 }
 
 cpu_temp() {
-    local zone
+    local zone hwmon temp_file
+
     for z in /sys/class/thermal/thermal_zone*; do
         if grep -q "x86_pkg_temp\|coretemp\|k10temp" "$z/type" 2>/dev/null; then
             zone="$z"
             break
         fi
     done
+
+    if [ -z "$zone" ]; then
+        for hwmon in /sys/class/hwmon/hwmon*; do
+            if grep -q "x86_pkg_temp\|coretemp\|k10temp" "$hwmon/name" 2>/dev/null; then
+                temp_file=$(find "$hwmon" -maxdepth 1 -name 'temp*_input' | sort | head -n 1)
+                if [ -n "$temp_file" ]; then
+                    cpu_temp=$(printf "%3d°C" $(($(cat "$temp_file") / 1000)))
+                    return
+                fi
+            fi
+        done
+    fi
+
     if [ -n "$zone" ]; then
         cpu_temp=$(printf "%3d°C" $(($(cat "$zone/temp") / 1000)))
     else
+        for z in /sys/class/thermal/thermal_zone*; do
+            if [ -r "$z/temp" ]; then
+                cpu_temp=$(printf "%3d°C" $(($(cat "$z/temp") / 1000)))
+                return
+            fi
+        done
         cpu_temp="N/A"
     fi
 }
