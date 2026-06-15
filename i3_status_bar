@@ -138,11 +138,6 @@ brightness() {
 volume() {
     volume=""
 
-    if has_cmd amixer; then
-        volume=$(amixer sget Master 2>/dev/null | awk '/Front Left:/ {print $5 $6; exit}')
-        [ -n "$volume" ] && return
-    fi
-
     if has_cmd pactl; then
         local vol=$(pactl get-sink-volume @DEFAULT_SINK@ 2>/dev/null | awk -F/ 'NR==1 {gsub(/[ \t]/, "", $2); print $2}')
         local mute=$(pactl get-sink-mute @DEFAULT_SINK@ 2>/dev/null | awk '{print $2}')
@@ -157,7 +152,26 @@ volume() {
         fi
     fi
 
-    volume=$(missing "amixer/pactl")
+    if has_cmd wpctl; then
+        local wpctl_status=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null)
+        local wpctl_volume=$(echo "$wpctl_status" | awk '/^Volume: [0-9.]+/ {printf "%d%%", $2 * 100}')
+
+        if [ -n "$wpctl_volume" ]; then
+            if echo "$wpctl_status" | grep -q '\[MUTED\]'; then
+                volume="${wpctl_volume} [off]"
+            else
+                volume="${wpctl_volume} [on]"
+            fi
+            return
+        fi
+    fi
+
+    if has_cmd amixer; then
+        volume=$(amixer sget Master 2>/dev/null | awk '/Front Left:/ {print $5 $6; exit}')
+        [ -n "$volume" ] && return
+    fi
+
+    volume=$(missing "amixer/pactl/wpctl")
 }
 
 cpu_temp() {
