@@ -1,11 +1,12 @@
 function amojosdb
     set -l env $argv[1]
-    set -l db $argv[2]
+    set -l shard $argv[2]
+    set -l db $argv[3]
     set -l host
     set -l allowed
 
     if test -z "$env"
-        echo "usage: amojosdb en|ru <database>" >&2
+        echo "usage: amojosdb en|ru 1|2|core [database]" >&2
         return 1
     end
 
@@ -21,8 +22,21 @@ function amojosdb
             return 1
     end
 
+    if test -n "$shard"
+        switch $shard
+            case 1
+                set db amojo_shard1
+            case 2
+                set db amojo_shard2
+            case core
+                set db amojo_core
+            case '*'
+                set db $shard
+        end
+    end
+
     if test -z "$db"
-        echo "amojosdb: missing database name" >&2
+        echo "amojosdb: missing shard number or database name" >&2
         echo "available for $env: "(string join ", " $allowed) >&2
         return 1
     end
