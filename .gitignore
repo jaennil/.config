@@ -94,6 +94,8 @@ fish/functions/amojodb.fish
 fish/functions/amojocbd.fish
 fish/functions/amojosbd.fish
 fish/functions/coredb.fish
+fish/functions/corecdb.fish
+fish/functions/coresdb.fish
 gedit/
 glib-2.0/
 gnome-initial-setup-done
