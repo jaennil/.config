@@ -2,7 +2,7 @@
 - git commit after every logical step/feature
 - start commit message with lowercase letter
 - use conventional commit messages
-- don't write commit descriptions
+- don't write commit and mr descriptions
 - commit message max length around 50 symbols
 - разделяй комиты на логические едицины. single responsibility principle для комитов
 - never push real credentials to github/gitlab
