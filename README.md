@@ -32,6 +32,26 @@ put `./telegram/shortcuts-custom.json` in `~/.local/share/TelegramDesktop/tdata/
 
 install `gnome-themes-extra`, `adwaita-qt5-git`$^{AUR}$, `adwaita-qt6-git`$^{AUR}$.
 
+Set an explicit dark preference for GTK and Electron applications such as
+Obsidian:
+
+```bash
+gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
+```
+
+`GTK_THEME` set in fish does not affect applications started by i3 or dmenu.
+Those applications read the color scheme from the desktop portal instead.
+Verify that the portal reports `uint32 1` (dark):
+
+```bash
+gdbus call --session \
+  --dest org.freedesktop.portal.Desktop \
+  --object-path /org/freedesktop/portal/desktop \
+  --method org.freedesktop.portal.Settings.Read \
+  org.freedesktop.appearance color-scheme
+```
+
 ### Keyboard
 
 sudo cp ~/.config/keyboard/wayland/jaennil_rpd /usr/share/X11/xkb/symbols/
