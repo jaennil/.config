@@ -188,6 +188,15 @@ ln -s ~/.config/.codex/AGENTS.md ~/.codex/AGENTS.md
 
 Custom status bar script for i3wm with CPU, RAM, battery, WiFi, VPN, Bluetooth, DNS indicators.
 
+Install `xset` so the `ru/en` indicator can read the active XKB group:
+
+```bash
+sudo pacman -S --needed xorg-xset
+```
+
+Without `xorg-xset`, the fallback through `setxkbmap -query` only reports the
+configured layout and does not reliably track the currently active group.
+
 ### Yazi git plugin
 
 ya pkg add yazi-rs/plugins:git
