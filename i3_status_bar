@@ -21,6 +21,7 @@ top_process=""
 top_ram_process=""
 power_watts=""
 power_tenths=""
+status_raw=""
 bat_path=""
 bl_path=""
 bl_max=""
@@ -118,6 +119,7 @@ battery() {
     if [ "$bat_path" = "none" ]; then
         capacity_num=""
         capacity="no battery"
+        status_raw=""
         status=""
         power_watts=""
         power_tenths=""
@@ -125,8 +127,15 @@ battery() {
     fi
 
     read -r capacity_num < "$bat_path/capacity" 2>/dev/null
-    capacity="${capacity_num}%"
-    read -r status < "$bat_path/status" 2>/dev/null
+    if is_number "$capacity_num"; then
+        printf -v capacity '%3d%%' "$capacity_num"
+    else
+        capacity="${capacity_num}%"
+    fi
+
+    # every field is padded to a fixed width so the bar never reflows
+    read -r status_raw < "$bat_path/status" 2>/dev/null
+    printf -v status '%-12s' "$status_raw"
 
     # power in watts, kept as tenths so the loop can compare it without awk
     local power_uw="" current_ua voltage_uv
@@ -140,15 +149,22 @@ battery() {
 
     if [ -n "$power_uw" ]; then
         power_tenths=$(( power_uw / 100000 ))
-        power_watts="$((power_tenths / 10)).$((power_tenths % 10))W"
+        if [ "$power_tenths" -ge 1000 ]; then
+            # drop the decimal past 100W to keep the field 5 columns wide
+            printf -v power_watts '%4dW' $((power_tenths / 10))
+        else
+            printf -v power_watts '%2d.%dW' $((power_tenths / 10)) $((power_tenths % 10))
+        fi
     else
         power_tenths=""
-        power_watts="N/A"
+        power_watts="  N/A"
     fi
 }
 
 timedate() {
-    printf -v timedate '%(%A %d-%m-%Y %H:%M:%S)T' -1
+    local weekday
+    printf -v weekday '%(%A)T' -1
+    printf -v timedate '%-10s%(%d-%m-%Y %H:%M:%S)T' "$weekday" -1
 }
 
 brightness() {
@@ -164,13 +180,22 @@ brightness() {
     fi
 
     if [ "$bl_path" = "none" ] || [ -z "$bl_max" ] || [ "$bl_max" -eq 0 ]; then
-        brightness="N/A"
+        brightness=" N/A"
         return
     fi
 
     local cur
     read -r cur < "$bl_path/brightness"
-    brightness=$((cur * 100 / bl_max))%
+    printf -v brightness '%3d%%' $((cur * 100 / bl_max))
+}
+
+# "[on ]" pads to the width of "[off]" so muting does not reflow the bar
+format_volume() {
+    if [ "$2" = "1" ]; then
+        printf -v volume '%3d%% [off]' "$1"
+    else
+        printf -v volume '%3d%% [on ]' "$1"
+    fi
 }
 
 volume() {
@@ -179,15 +204,15 @@ volume() {
     if has_cmd pactl; then
         local pactl_vol=$(pactl get-sink-volume @DEFAULT_SINK@ 2>/dev/null)
         local vol=""
-        [[ $pactl_vol =~ ([0-9]+)% ]] && vol="${BASH_REMATCH[1]}%"
+        [[ $pactl_vol =~ ([0-9]+)% ]] && vol="${BASH_REMATCH[1]}"
         local mute=$(pactl get-sink-mute @DEFAULT_SINK@ 2>/dev/null)
         mute="${mute##* }"
 
         if [ -n "$vol" ]; then
             if [ "$mute" = "yes" ]; then
-                volume="${vol} [off]"
+                format_volume "$vol" 1
             else
-                volume="${vol} [on]"
+                format_volume "$vol" 0
             fi
             return
         fi
@@ -195,21 +220,29 @@ volume() {
 
     if has_cmd wpctl; then
         local wpctl_status=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null)
-        local wpctl_volume=$(echo "$wpctl_status" | awk '/^Volume: [0-9.]+/ {printf "%d%%", $2 * 100}')
+        local wpctl_volume=$(echo "$wpctl_status" | awk '/^Volume: [0-9.]+/ {printf "%d", $2 * 100}')
 
         if [ -n "$wpctl_volume" ]; then
-            if echo "$wpctl_status" | grep -q '\[MUTED\]'; then
-                volume="${wpctl_volume} [off]"
+            if [[ $wpctl_status == *"[MUTED]"* ]]; then
+                format_volume "$wpctl_volume" 1
             else
-                volume="${wpctl_volume} [on]"
+                format_volume "$wpctl_volume" 0
             fi
             return
         fi
     fi
 
     if has_cmd amixer; then
-        volume=$(amixer sget Master 2>/dev/null | awk '/Front Left:/ {print $5 $6; exit}')
-        [ -n "$volume" ] && return
+        # e.g. "[43%] [on]"
+        local amixer_out=$(amixer sget Master 2>/dev/null | awk '/Front Left:/ {print $5, $6; exit}')
+        if [[ $amixer_out =~ \[([0-9]+)%\]\ \[(on|off)\] ]]; then
+            if [ "${BASH_REMATCH[2]}" = "off" ]; then
+                format_volume "${BASH_REMATCH[1]}" 1
+            else
+                format_volume "${BASH_REMATCH[1]}" 0
+            fi
+            return
+        fi
     fi
 
     volume=$(missing "amixer/pactl/wpctl")
@@ -271,9 +304,9 @@ cpu_usage() {
     local diff_total=$((total - prev_total))
 
     if [ "$diff_total" -gt 0 ]; then
-        cpu_usage=$((100 * (diff_total - diff_idle) / diff_total))%
+        printf -v cpu_usage '%3d%%' $((100 * (diff_total - diff_idle) / diff_total))
     else
-        cpu_usage="0%"
+        cpu_usage="  0%"
     fi
 
     prev_idle=$idle
@@ -289,9 +322,9 @@ ram_usage() {
         esac
     done < /proc/meminfo
 
-    [ "$total" -eq 0 ] && { ram_usage="N/A"; return; }
+    [ "$total" -eq 0 ] && { ram_usage=" N/A"; return; }
     local used=$((total - available))
-    ram_usage=$((used * 100 / total))%
+    printf -v ram_usage '%3d%%' $((used * 100 / total))
 }
 
 # ps is ~5x cheaper than top -bn1 and reports the same
@@ -302,9 +335,10 @@ format_top() {
         $1 = ""
         sub(/^ +/, "")
         if ($0 == "ps") next  # skip our own probe, it always looks busy
+        if (pct > 999) pct = 999
         name = substr($0, 1, 8)
         pad = int((8 - length(name)) / 2)
-        printf "%*s%-*s %3.0f%%", pad, "", 8 - pad, name, pct
+        printf "%*s%-*s %4.0f%%", pad, "", 8 - pad, name, pct
         exit
     }'
 }
@@ -346,7 +380,7 @@ wifi_quality() {
     while read -r ifc _ link _; do
         [ "$ifc" = "$wifi_iface:" ] || continue
         link=${link%.}
-        [ -n "$link" ] && printf -v wifi_qual '%d%%' $((link * 100 / 70))
+        [ -n "$link" ] && printf -v wifi_qual '%3d%%' $((link * 100 / 70))
         return
     done < /proc/net/wireless
 }
@@ -397,7 +431,7 @@ vpn() {
     if ! has_cmd nmcli; then
         vpn=$(missing "nmcli")
     elif nmcli -t -f TYPE,STATE connection show --active 2>/dev/null | grep -q "^vpn:"; then
-        vpn="up"
+        vpn="up  "
     else
         vpn="down"
     fi
@@ -436,7 +470,15 @@ bluetooth() {
         if has_cmd upower; then
             bat=$(timeout 1s upower -e 2>/dev/null | grep -i "${mac//:/_}" | xargs -r -I{} timeout 1s upower -i {} 2>/dev/null | awk '/percentage:/ {print $2}' | tr -d '%')
         fi
-        [ -n "$bat" ] && batteries="${batteries}${bat}% " || batteries="${batteries}N/A "
+        bat=${bat%%.*}
+        if is_number "$bat"; then
+            printf -v bat '%3d%%' "$bat"
+        elif [ -n "$bat" ]; then
+            bat="${bat}%"
+        else
+            bat="N/A "
+        fi
+        batteries="${batteries}${bat} "
     done
 
     bluetooth="${names%, }"
@@ -449,6 +491,30 @@ json_escape_into() {
     _esc=${_esc//\"/\\\"}
     _esc=${_esc//[[:cntrl:]]/}
     printf -v "$1" '%s' "$_esc"
+}
+
+refresh_cpu_proc() {
+    top_process
+    json_escape_into top_process_e "$top_process"
+}
+
+refresh_ram_proc() {
+    top_ram_process
+    json_escape_into top_ram_process_e "$top_ram_process"
+}
+
+refresh_net() {
+    dns
+    vpn
+    json_escape_into dns_e "$dns"
+}
+
+refresh_devices() {
+    wifi
+    bluetooth
+    json_escape_into wifi_e "$wifi"
+    json_escape_into bluetooth_e "$bluetooth"
+    json_escape_into bluetooth_battery_e "$bluetooth_battery"
 }
 
 handle_clicks() {
@@ -466,6 +532,12 @@ output_status() {
 echo '{"version":1,"click_events":true}'
 echo '['
 echo '[]'
+
+# prime the slow collectors so the very first line is already complete
+refresh_cpu_proc
+refresh_ram_proc
+refresh_net
+refresh_devices
 
 # one tick is 0.1s; collectors that cost more than a few ms run on a
 # slower cadence so the clock, volume and layout stay snappy
@@ -493,40 +565,24 @@ do
   # the expensive collectors refresh every 2s, staggered over different
   # ticks so no single tick blows past the 0.1s period
   case $((tick % 20)) in
-    0)
-      top_process
-      json_escape_into top_process_e "$top_process"
-      ;;
-    5)
-      top_ram_process
-      json_escape_into top_ram_process_e "$top_ram_process"
-      ;;
-    10)
-      dns
-      vpn
-      json_escape_into dns_e "$dns"
-      ;;
-    15)
-      wifi
-      bluetooth
-      json_escape_into wifi_e "$wifi"
-      json_escape_into bluetooth_e "$bluetooth"
-      json_escape_into bluetooth_battery_e "$bluetooth_battery"
-      ;;
+    0) refresh_cpu_proc ;;
+    5) refresh_ram_proc ;;
+    10) refresh_net ;;
+    15) refresh_devices ;;
   esac
 
   # Low battery notification
-  if is_number "$capacity_num" && [ "$capacity_num" -le 20 ] && [ "$status" = "Discharging" ] && [ -z "$low_battery_notified" ]; then
+  if is_number "$capacity_num" && [ "$capacity_num" -le 20 ] && [ "$status_raw" = "Discharging" ] && [ -z "$low_battery_notified" ]; then
       notify-send -u critical "Low Battery" "Battery at ${capacity_num}%"
       low_battery_notified="1"
-  elif { is_number "$capacity_num" && [ "$capacity_num" -gt 20 ]; } || [ "$status" = "Charging" ]; then
+  elif { is_number "$capacity_num" && [ "$capacity_num" -gt 20 ]; } || [ "$status_raw" = "Charging" ]; then
       low_battery_notified=""
   fi
 
   # Battery status color
-  if [ "$status" = "Charging" ]; then
+  if [ "$status_raw" = "Charging" ]; then
       status_color=',"color":"#00FF00"'  # green
-  elif [ "$status" = "Discharging" ]; then
+  elif [ "$status_raw" = "Discharging" ]; then
       status_color=',"color":"#FFFF00"'  # yellow
   else
       status_color=""
@@ -563,7 +619,7 @@ do
   # Volume color
   if is_missing "$volume"; then
       volume_color=$MISSING_COLOR
-  elif echo "$volume" | grep -q "\[off\]"; then
+  elif [[ $volume == *"[off]"* ]]; then
       volume_color=',"color":"#00FF00"'  # green - muted
   else
       volume_color=',"color":"#FF6600"'  # orange - on
@@ -583,7 +639,7 @@ do
 
   # Bluetooth battery color
   bt_bat_num=""
-  [[ $bluetooth_battery =~ ^([0-9]+) ]] && bt_bat_num=${BASH_REMATCH[1]}
+  [[ $bluetooth_battery =~ ^[[:space:]]*([0-9]+) ]] && bt_bat_num=${BASH_REMATCH[1]}
   if [ -n "$bt_bat_num" ]; then
       if [ "$bt_bat_num" -lt 10 ]; then
           bt_bat_color=',"color":"#FF0000"'  # red
@@ -601,7 +657,7 @@ do
   # VPN color
   if is_missing "$vpn"; then
       vpn_color=$MISSING_COLOR
-  elif [ "$vpn" = "up" ]; then
+  elif [[ $vpn == up* ]]; then
       vpn_color=',"color":"#FF6600"'  # orange
   else
       vpn_color=',"color":"#00FF00"'  # green
