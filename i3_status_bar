@@ -443,8 +443,12 @@ bluetooth() {
     bluetooth_battery="${batteries% }"
 }
 
-json_escape() {
-    printf '%s' "$1" | tr -d '\000-\037' | sed 's/\\/\\\\/g; s/"/\\"/g'
+# escapes $2 into the variable named by $1, without forking a subshell
+json_escape_into() {
+    local _esc=${2//\\/\\\\}
+    _esc=${_esc//\"/\\\"}
+    _esc=${_esc//[[:cntrl:]]/}
+    printf -v "$1" '%s' "$_esc"
 }
 
 handle_clicks() {
@@ -463,30 +467,53 @@ echo '{"version":1,"click_events":true}'
 echo '['
 echo '[]'
 
+# one tick is 0.1s; collectors that cost more than a few ms run on a
+# slower cadence so the clock, volume and layout stay snappy
+tick=0
+period_us=100000
 while :
 do
+  loop_start=${EPOCHREALTIME/[.,]/}
+
   get_layout
   battery
   brightness
   timedate
   volume
-  cpu_temp
-  cpu_usage
   ram_usage
-  top_process
-  top_ram_process
-  dns
-  bluetooth
-  wifi
-  vpn
 
-  top_process=$(json_escape "$top_process")
-  top_ram_process=$(json_escape "$top_ram_process")
-  dns=$(json_escape "$dns")
-  bluetooth=$(json_escape "$bluetooth")
-  bluetooth_battery=$(json_escape "$bluetooth_battery")
-  wifi=$(json_escape "$wifi")
-  volume=$(json_escape "$volume")
+  json_escape_into volume_e "$volume"
+
+  # cpu deltas need a window wider than one tick to be readable
+  if (( tick % 5 == 0 )); then
+    cpu_temp
+    cpu_usage
+  fi
+
+  # the expensive collectors refresh every 2s, staggered over different
+  # ticks so no single tick blows past the 0.1s period
+  case $((tick % 20)) in
+    0)
+      top_process
+      json_escape_into top_process_e "$top_process"
+      ;;
+    5)
+      top_ram_process
+      json_escape_into top_ram_process_e "$top_ram_process"
+      ;;
+    10)
+      dns
+      vpn
+      json_escape_into dns_e "$dns"
+      ;;
+    15)
+      wifi
+      bluetooth
+      json_escape_into wifi_e "$wifi"
+      json_escape_into bluetooth_e "$bluetooth"
+      json_escape_into bluetooth_battery_e "$bluetooth_battery"
+      ;;
+  esac
 
   # Low battery notification
   if is_number "$capacity_num" && [ "$capacity_num" -le 20 ] && [ "$status" = "Discharging" ] && [ -z "$low_battery_notified" ]; then
@@ -632,23 +659,23 @@ do
     {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$cpu_usage\"$cpu_usage_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$top_process\",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$top_process_e\",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | ram: \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$ram_usage\"$ram_usage_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$top_ram_process\",\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$top_ram_process_e\",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | wifi: \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$wifi\"$wifi_color,\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$wifi_e\"$wifi_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | vpn: \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$vpn\"$vpn_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | bt: \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$bluetooth\"$bluetooth_color,\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$bluetooth_e\"$bluetooth_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$bluetooth_battery\"$bt_bat_color,\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$bluetooth_battery_e\"$bt_bat_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | dns: \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$dns$dns_suffix\"$dns_color,\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$dns_e$dns_suffix\"$dns_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | volume: \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$volume\"$volume_color,\"separator\":false,\"separator_block_width\":0},
+    {\"full_text\":\"$volume_e\"$volume_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | brightness: \",\"separator\":false,\"separator_block_width\":0},
     {\"name\":\"brightness\",\"full_text\":\"$brightness\",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | \",\"separator\":false,\"separator_block_width\":0},
@@ -662,7 +689,14 @@ do
     {\"full_text\":\" | \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$timedate\"}
   ]"
-  sleep 0.2
+
+  tick=$((tick + 1))
+
+  left_us=$((period_us - (${EPOCHREALTIME/[.,]/} - loop_start)))
+  if [ "$left_us" -gt 0 ]; then
+      printf -v left_frac '%06d' "$left_us"
+      sleep "0.$left_frac"
+  fi
 done
 }
 
