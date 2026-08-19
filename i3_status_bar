@@ -266,37 +266,68 @@ dns() {
     fi
 }
 
+find_wifi_iface() {
+    wifi_iface="none"
+
+    local d
+    for d in /sys/class/net/*/wireless; do
+        [ -d "$d" ] || continue
+        d=${d%/wireless}
+        wifi_iface=${d##*/}
+        return
+    done
+}
+
+wifi_quality() {
+    wifi_qual=""
+    [ "$wifi_iface" = "none" ] && return
+
+    # link quality in /proc/net/wireless is out of 70
+    local ifc link
+    while read -r ifc _ link _; do
+        [ "$ifc" = "$wifi_iface:" ] || continue
+        link=${link%.}
+        [ -n "$link" ] && printf -v wifi_qual '%d%%' $((link * 100 / 70))
+        return
+    done < /proc/net/wireless
+}
+
 wifi() {
     local ssid=""
-    local quality=""
+
+    [ -z "$wifi_iface" ] && find_wifi_iface
 
     if has_cmd iwgetid; then
         ssid=$(iwgetid -r 2>/dev/null)
     fi
 
+    # iw asks the kernel; nmcli dev wifi would kick off a rescan and
+    # block the whole bar for seconds every couple of minutes
+    if [ -z "$ssid" ] && [ "$wifi_iface" != "none" ] && has_cmd iw; then
+        local link=$(iw dev "$wifi_iface" link 2>/dev/null)
+        [[ $link =~ SSID:\ ([^$'\n']*) ]] && ssid=${BASH_REMATCH[1]}
+    fi
+
+    if [ -z "$ssid" ] && has_cmd nmcli; then
+        # connection show does not scan either
+        ssid=$(nmcli -t -f TYPE,NAME connection show --active 2>/dev/null | awk -F: '$1 == "802-11-wireless" {print $2; exit}')
+    fi
+
     if [ -n "$ssid" ]; then
-        quality=$(awk 'NR==3 {printf "%.0f%%", $3*100/70}' /proc/net/wireless 2>/dev/null)
-        wifi="$ssid $quality"
+        wifi_quality
+        wifi="$ssid $wifi_qual"
         return
     fi
 
     if has_cmd nmcli; then
-        ssid=$(nmcli -t -f ACTIVE,SSID dev wifi 2>/dev/null | awk -F: '$1 == "yes" {print $2; exit}')
-        [ -n "$ssid" ] && quality=$(nmcli -t -f ACTIVE,SIGNAL dev wifi 2>/dev/null | awk -F: '$1 == "yes" {print $2 "%"; exit}')
-
-        if [ -n "$ssid" ]; then
-            wifi="$ssid $quality"
-            return
-        fi
-
         if nmcli -t -f TYPE,STATE dev status 2>/dev/null | grep -q '^wifi:connected$'; then
             wifi="connected"
             return
         fi
     fi
 
-    if ! has_cmd iwgetid && ! has_cmd nmcli; then
-        wifi=$(missing "iwgetid/nmcli")
+    if ! has_cmd iwgetid && ! has_cmd iw && ! has_cmd nmcli; then
+        wifi=$(missing "iwgetid/iw/nmcli")
         return
     fi
 
