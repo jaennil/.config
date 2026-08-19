@@ -20,6 +20,18 @@ ram_usage=""
 top_process=""
 top_ram_process=""
 power_watts=""
+power_tenths=""
+bat_path=""
+bl_path=""
+bl_max=""
+cpu_temp_file=""
+wifi_iface=""
+wifi_qual=""
+
+MISSING_COLOR=',"color":"#FF0000"'
+
+# date/printf %()T formats weekday names with LC_TIME
+export LC_TIME=en_US.UTF-8
 
 has_cmd() {
     command -v "$1" >/dev/null 2>&1
@@ -33,19 +45,20 @@ is_number() {
     [[ "$1" =~ ^[0-9]+$ ]]
 }
 
-missing_color() {
+is_missing() {
     case "$1" in
-        missing:*)
-            printf ',"color":"#FF0000"'
-            ;;
+        missing:*) return 0 ;;
     esac
+    return 1
 }
 
 get_layout() {
   layout=""
 
   if has_cmd xset; then
-    kb=$(xset -q 2>/dev/null | grep -oP '\d{8}' | head -1)
+    local xset_out=$(xset -q 2>/dev/null)
+    kb=""
+    [[ $xset_out =~ [0-9]{8} ]] && kb="$BASH_REMATCH"
 
     case $kb in
       "00001000")
@@ -81,66 +94,94 @@ get_layout() {
   layout=$(missing "xset/setxkbmap")
 }
 
-battery() {
-    local bat=""
+find_battery() {
+    bat_path="none"
 
     if [ -d /sys/class/power_supply/BAT0 ]; then
-        bat="/sys/class/power_supply/BAT0"
-    else
-        for supply in /sys/class/power_supply/*; do
-            [ -d "$supply" ] || continue
-            [ "$(cat "$supply/type" 2>/dev/null)" = "Battery" ] || continue
-            bat="$supply"
-            break
-        done
+        bat_path="/sys/class/power_supply/BAT0"
+        return
     fi
 
-    if [ -z "$bat" ]; then
+    local supply type
+    for supply in /sys/class/power_supply/*; do
+        [ -d "$supply" ] || continue
+        read -r type < "$supply/type" 2>/dev/null || continue
+        [ "$type" = "Battery" ] || continue
+        bat_path="$supply"
+        return
+    done
+}
+
+battery() {
+    [ -z "$bat_path" ] && find_battery
+
+    if [ "$bat_path" = "none" ]; then
         capacity_num=""
         capacity="no battery"
         status=""
         power_watts=""
+        power_tenths=""
         return
     fi
 
-    capacity_num="$(cat "$bat/capacity" 2>/dev/null)"
+    read -r capacity_num < "$bat_path/capacity" 2>/dev/null
     capacity="${capacity_num}%"
-    status="$(cat "$bat/status" 2>/dev/null)"
+    read -r status < "$bat_path/status" 2>/dev/null
 
-    # Get power in watts
-    if [ -f "$bat/power_now" ]; then
-        local power_uw=$(cat "$bat/power_now")
-        power_watts=$(awk "BEGIN {printf \"%.1fW\", $power_uw / 1000000}")
-    elif [ -f "$bat/current_now" ] && [ -f "$bat/voltage_now" ]; then
-        local current_ua=$(cat "$bat/current_now")
-        local voltage_uv=$(cat "$bat/voltage_now")
-        power_watts=$(awk "BEGIN {printf \"%.1fW\", ($current_ua * $voltage_uv) / 1000000000000}")
+    # power in watts, kept as tenths so the loop can compare it without awk
+    local power_uw="" current_ua voltage_uv
+    if [ -f "$bat_path/power_now" ]; then
+        read -r power_uw < "$bat_path/power_now"
+    elif [ -f "$bat_path/current_now" ] && [ -f "$bat_path/voltage_now" ]; then
+        read -r current_ua < "$bat_path/current_now"
+        read -r voltage_uv < "$bat_path/voltage_now"
+        power_uw=$(( current_ua * voltage_uv / 1000000 ))
+    fi
+
+    if [ -n "$power_uw" ]; then
+        power_tenths=$(( power_uw / 100000 ))
+        power_watts="$((power_tenths / 10)).$((power_tenths % 10))W"
     else
+        power_tenths=""
         power_watts="N/A"
     fi
 }
 
 timedate() {
-    timedate=$(LC_ALL=en_US.UTF-8 date +"%A %d-%m-%Y %H:%M:%S")
+    printf -v timedate '%(%A %d-%m-%Y %H:%M:%S)T' -1
 }
 
 brightness() {
-    local bl=$(ls /sys/class/backlight/ | head -1)
-    if [ -n "$bl" ]; then
-        local cur=$(cat /sys/class/backlight/$bl/brightness)
-        local max=$(cat /sys/class/backlight/$bl/max_brightness)
-        brightness=$((cur * 100 / max))%
-    else
-        brightness="N/A"
+    if [ -z "$bl_path" ]; then
+        bl_path="none"
+        local bl
+        for bl in /sys/class/backlight/*; do
+            [ -r "$bl/brightness" ] || continue
+            bl_path="$bl"
+            read -r bl_max < "$bl/max_brightness"
+            break
+        done
     fi
+
+    if [ "$bl_path" = "none" ] || [ -z "$bl_max" ] || [ "$bl_max" -eq 0 ]; then
+        brightness="N/A"
+        return
+    fi
+
+    local cur
+    read -r cur < "$bl_path/brightness"
+    brightness=$((cur * 100 / bl_max))%
 }
 
 volume() {
     volume=""
 
     if has_cmd pactl; then
-        local vol=$(pactl get-sink-volume @DEFAULT_SINK@ 2>/dev/null | awk -F/ 'NR==1 {gsub(/[ \t]/, "", $2); print $2}')
-        local mute=$(pactl get-sink-mute @DEFAULT_SINK@ 2>/dev/null | awk '{print $2}')
+        local pactl_vol=$(pactl get-sink-volume @DEFAULT_SINK@ 2>/dev/null)
+        local vol=""
+        [[ $pactl_vol =~ ([0-9]+)% ]] && vol="${BASH_REMATCH[1]}%"
+        local mute=$(pactl get-sink-mute @DEFAULT_SINK@ 2>/dev/null)
+        mute="${mute##* }"
 
         if [ -n "$vol" ]; then
             if [ "$mute" = "yes" ]; then
@@ -174,50 +215,56 @@ volume() {
     volume=$(missing "amixer/pactl/wpctl")
 }
 
-cpu_temp() {
-    local zone hwmon temp_file
+find_cpu_temp_file() {
+    cpu_temp_file="none"
 
+    local z hwmon f name
     for z in /sys/class/thermal/thermal_zone*; do
-        if grep -q "x86_pkg_temp\|coretemp\|k10temp" "$z/type" 2>/dev/null; then
-            zone="$z"
-            break
-        fi
+        read -r name < "$z/type" 2>/dev/null || continue
+        case "$name" in
+            x86_pkg_temp|coretemp|k10temp)
+                cpu_temp_file="$z/temp"
+                return
+                ;;
+        esac
     done
 
-    if [ -z "$zone" ]; then
-        for hwmon in /sys/class/hwmon/hwmon*; do
-            if grep -q "x86_pkg_temp\|coretemp\|k10temp" "$hwmon/name" 2>/dev/null; then
-                temp_file=$(find "$hwmon" -maxdepth 1 -name 'temp*_input' | sort | head -n 1)
-                if [ -n "$temp_file" ]; then
-                    cpu_temp=$(printf "%3d°C" $(($(cat "$temp_file") / 1000)))
-                    return
-                fi
-            fi
+    for hwmon in /sys/class/hwmon/hwmon*; do
+        read -r name < "$hwmon/name" 2>/dev/null || continue
+        case "$name" in
+            x86_pkg_temp|coretemp|k10temp) ;;
+            *) continue ;;
+        esac
+        for f in "$hwmon"/temp*_input; do
+            [ -r "$f" ] || continue
+            cpu_temp_file="$f"
+            return
         done
+    done
+
+    for z in /sys/class/thermal/thermal_zone*; do
+        [ -r "$z/temp" ] || continue
+        cpu_temp_file="$z/temp"
+        return
+    done
+}
+
+cpu_temp() {
+    [ -z "$cpu_temp_file" ] && find_cpu_temp_file
+
+    if [ "$cpu_temp_file" = "none" ]; then
+        cpu_temp="N/A"
+        return
     fi
 
-    if [ -n "$zone" ]; then
-        cpu_temp=$(printf "%3d°C" $(($(cat "$zone/temp") / 1000)))
-    else
-        for z in /sys/class/thermal/thermal_zone*; do
-            if [ -r "$z/temp" ]; then
-                cpu_temp=$(printf "%3d°C" $(($(cat "$z/temp") / 1000)))
-                return
-            fi
-        done
-        cpu_temp="N/A"
-    fi
+    local raw
+    read -r raw < "$cpu_temp_file"
+    printf -v cpu_temp '%3d°C' $((raw / 1000))
 }
 
 cpu_usage() {
-    local cpu_line=$(head -1 /proc/stat)
-    local user=$(echo "$cpu_line" | awk '{print $2}')
-    local nice=$(echo "$cpu_line" | awk '{print $3}')
-    local system=$(echo "$cpu_line" | awk '{print $4}')
-    local idle=$(echo "$cpu_line" | awk '{print $5}')
-    local iowait=$(echo "$cpu_line" | awk '{print $6}')
-    local irq=$(echo "$cpu_line" | awk '{print $7}')
-    local softirq=$(echo "$cpu_line" | awk '{print $8}')
+    local _cpu user nice system idle iowait irq softirq
+    read -r _cpu user nice system idle iowait irq softirq _ < /proc/stat
 
     local total=$((user + nice + system + idle + iowait + irq + softirq))
     local diff_idle=$((idle - prev_idle))
@@ -234,28 +281,40 @@ cpu_usage() {
 }
 
 ram_usage() {
-    local total=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
-    local available=$(awk '/MemAvailable/ {print $2}' /proc/meminfo)
+    local total=0 available=0 key val
+    while read -r key val _; do
+        case "$key" in
+            MemTotal:) total=$val ;;
+            MemAvailable:) available=$val; break ;;
+        esac
+    done < /proc/meminfo
+
+    [ "$total" -eq 0 ] && { ram_usage="N/A"; return; }
     local used=$((total - available))
     ram_usage=$((used * 100 / total))%
 }
 
-top_process() {
-    top_process=$(top -bn1 -o %CPU | awk 'NR>7 {
-        name = substr($12, 1, 8)
+# ps is ~5x cheaper than top -bn1 and reports the same
+# since-start cpu share that top's first iteration does
+format_top() {
+    awk '{
+        pct = $1
+        $1 = ""
+        sub(/^ +/, "")
+        if ($0 == "ps") next  # skip our own probe, it always looks busy
+        name = substr($0, 1, 8)
         pad = int((8 - length(name)) / 2)
-        printf "%*s%-*s %3.0f%%", pad, "", 8 - pad, name, $9
+        printf "%*s%-*s %3.0f%%", pad, "", 8 - pad, name, pct
         exit
-    }')
+    }'
+}
+
+top_process() {
+    top_process=$(ps -eo pcpu=,comm= --sort=-pcpu | format_top)
 }
 
 top_ram_process() {
-    top_ram_process=$(top -bn1 -o %MEM | awk 'NR>7 {
-        name = substr($12, 1, 8)
-        pad = int((8 - length(name)) / 2)
-        printf "%*s%-*s %3.0f%%", pad, "", 8 - pad, name, $10
-        exit
-    }')
+    top_ram_process=$(ps -eo pmem=,comm= --sort=-pmem | format_top)
 }
 
 dns() {
@@ -458,7 +517,7 @@ do
   fi
 
   # CPU temp color
-  cpu_temp_num=$(echo "$cpu_temp" | grep -oP '\d+')
+  cpu_temp_num=${cpu_temp//[^0-9]/}
   if [ "$cpu_temp_num" -gt 95 ] 2>/dev/null; then
       cpu_color=',"color":"#FF0000"'  # red - hot
   elif [ "$cpu_temp_num" -gt 65 ] 2>/dev/null; then
@@ -467,13 +526,16 @@ do
       cpu_color=',"color":"#00FF00"'  # green - normal
   fi
 
-  wifi_color=$(missing_color "$wifi")
-  bluetooth_color=$(missing_color "$bluetooth")
-  dns_color=$(missing_color "$dns")
+  wifi_color=""
+  is_missing "$wifi" && wifi_color=$MISSING_COLOR
+  bluetooth_color=""
+  is_missing "$bluetooth" && bluetooth_color=$MISSING_COLOR
+  dns_color=""
+  is_missing "$dns" && dns_color=$MISSING_COLOR
 
   # Volume color
-  if [ -n "$(missing_color "$volume")" ]; then
-      volume_color=$(missing_color "$volume")
+  if is_missing "$volume"; then
+      volume_color=$MISSING_COLOR
   elif echo "$volume" | grep -q "\[off\]"; then
       volume_color=',"color":"#00FF00"'  # green - muted
   else
@@ -493,7 +555,8 @@ do
   fi
 
   # Bluetooth battery color
-  bt_bat_num=$(echo "$bluetooth_battery" | grep -oP '^\d+' | head -1)
+  bt_bat_num=""
+  [[ $bluetooth_battery =~ ^([0-9]+) ]] && bt_bat_num=${BASH_REMATCH[1]}
   if [ -n "$bt_bat_num" ]; then
       if [ "$bt_bat_num" -lt 10 ]; then
           bt_bat_color=',"color":"#FF0000"'  # red
@@ -509,8 +572,8 @@ do
   fi
 
   # VPN color
-  if [ -n "$(missing_color "$vpn")" ]; then
-      vpn_color=$(missing_color "$vpn")
+  if is_missing "$vpn"; then
+      vpn_color=$MISSING_COLOR
   elif [ "$vpn" = "up" ]; then
       vpn_color=',"color":"#FF6600"'  # orange
   else
@@ -518,20 +581,19 @@ do
   fi
 
   # Layout color
-  if [ -n "$(missing_color "$layout")" ]; then
-      layout_color=$(missing_color "$layout")
+  if is_missing "$layout"; then
+      layout_color=$MISSING_COLOR
   elif [ "$layout" = "en" ]; then
       layout_color=',"color":"#00FF00"'  # green
   else
       layout_color=',"color":"#FFFF00"'  # yellow
   fi
 
-  # Power watts color
-  power_num=$(echo "$power_watts" | grep -oP '[\d.]+' | head -1)
-  if [ -n "$power_num" ]; then
-      if awk "BEGIN {exit !($power_num < 10)}"; then
+  # Power watts color (power_tenths is watts * 10)
+  if [ -n "$power_tenths" ]; then
+      if [ "$power_tenths" -lt 100 ]; then
           power_color=',"color":"#00FF00"'  # green - low power
-      elif awk "BEGIN {exit !($power_num < 30)}"; then
+      elif [ "$power_tenths" -lt 300 ]; then
           power_color=',"color":"#FFFF00"'  # yellow - medium power
       else
           power_color=',"color":"#FF6600"'  # orange - high power
@@ -541,7 +603,7 @@ do
   fi
 
   # CPU usage color
-  cpu_usage_num=$(echo "$cpu_usage" | grep -oP '\d+')
+  cpu_usage_num=${cpu_usage//[^0-9]/}
   if [ "$cpu_usage_num" -gt 90 ] 2>/dev/null; then
       cpu_usage_color=',"color":"#FF0000"'  # red - critical
   elif [ "$cpu_usage_num" -gt 70 ] 2>/dev/null; then
@@ -553,7 +615,7 @@ do
   fi
 
   # RAM usage color
-  ram_usage_num=$(echo "$ram_usage" | grep -oP '\d+')
+  ram_usage_num=${ram_usage//[^0-9]/}
   if [ "$ram_usage_num" -gt 90 ] 2>/dev/null; then
       ram_usage_color=',"color":"#FF0000"'  # red - critical
   elif [ "$ram_usage_num" -gt 70 ] 2>/dev/null; then
