@@ -218,4 +218,4 @@ assign [class="pavucontrol"] $ws9
 assign [class="telegram-desktop"] $ws10
 assign [class="TelegramDesktop"] $ws10
 
-exec --no-startup-id i3-msg 'exec $browser; exec pavucontrol; exec telegram-desktop; exec $terminal'
+exec --no-startup-id i3-msg 'exec $browser; exec telegram-desktop; exec $terminal'
