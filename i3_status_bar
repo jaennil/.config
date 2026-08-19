@@ -320,6 +320,14 @@ bluetooth() {
         return
     fi
 
+    # bluetoothctl hangs forever when bluetoothd is down, so the
+    # timeouts below would burn a second on every tick
+    if has_cmd busctl && ! busctl --system status org.bluez >/dev/null 2>&1; then
+        bluetooth="off"
+        bluetooth_battery=""
+        return
+    fi
+
     local devices=$(timeout 1s bluetoothctl devices Connected 2>/dev/null | awk '{print $2}')
     if [ -z "$devices" ]; then
         bluetooth="-"
