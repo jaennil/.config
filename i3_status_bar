@@ -17,7 +17,6 @@ cpu_usage=""
 prev_idle=0
 prev_total=0
 ram_usage=""
-top_process=""
 top_ram_process=""
 power_watts=""
 power_tenths=""
@@ -328,7 +327,7 @@ ram_usage() {
 }
 
 # ps is ~5x cheaper than top -bn1 and reports the same
-# since-start cpu share that top's first iteration does
+# since-start share that top's first iteration does
 format_top() {
     awk '{
         pct = $1
@@ -341,10 +340,6 @@ format_top() {
         printf "%*s%-*s %4.0f%%", pad, "", 8 - pad, name, pct
         exit
     }'
-}
-
-top_process() {
-    top_process=$(ps -eo pcpu=,comm= --sort=-pcpu | format_top)
 }
 
 top_ram_process() {
@@ -493,11 +488,6 @@ json_escape_into() {
     printf -v "$1" '%s' "$_esc"
 }
 
-refresh_cpu_proc() {
-    top_process
-    json_escape_into top_process_e "$top_process"
-}
-
 refresh_ram_proc() {
     top_ram_process
     json_escape_into top_ram_process_e "$top_ram_process"
@@ -534,7 +524,6 @@ echo '['
 echo '[]'
 
 # prime the slow collectors so the very first line is already complete
-refresh_cpu_proc
 refresh_ram_proc
 refresh_net
 refresh_devices
@@ -565,7 +554,6 @@ do
   # the expensive collectors refresh every 2s, staggered over different
   # ticks so no single tick blows past the 0.1s period
   case $((tick % 20)) in
-    0) refresh_cpu_proc ;;
     5) refresh_ram_proc ;;
     10) refresh_net ;;
     15) refresh_devices ;;
@@ -714,8 +702,6 @@ do
     {\"full_text\":\"$cpu_temp\"$cpu_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$cpu_usage\"$cpu_usage_color,\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
-    {\"full_text\":\"$top_process_e\",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" | ram: \",\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\"$ram_usage\"$ram_usage_color,\"separator\":false,\"separator_block_width\":0},
     {\"full_text\":\" \",\"separator\":false,\"separator_block_width\":0},
