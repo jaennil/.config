@@ -17,3 +17,7 @@ if test -z "$DISPLAY" -a (tty) = "/dev/tty1"
 end
 set -gx EDITOR nvim
 set -gx PATH $PATH ~/.npm-global/bin
+
+# >>> grok installer >>>
+fish_add_path $HOME/.grok/bin
+# <<< grok installer <<<
