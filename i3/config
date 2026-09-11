@@ -219,3 +219,23 @@ assign [class="telegram-desktop"] $ws10
 assign [class="TelegramDesktop"] $ws10
 
 exec --no-startup-id i3-msg 'exec $browser; exec telegram-desktop; exec $terminal'
+
+
+
+
+
+
+
+
+# >>> vibenotify bindings >>>
+# Ctrl+Win+1 selects the oldest active notification; 2 through 9 select newer ones.
+bindsym Control+Mod4+1 exec --no-startup-id ~/.local/lib/vibenotify/notify.sh focus 1
+bindsym Control+Mod4+2 exec --no-startup-id ~/.local/lib/vibenotify/notify.sh focus 2
+bindsym Control+Mod4+3 exec --no-startup-id ~/.local/lib/vibenotify/notify.sh focus 3
+bindsym Control+Mod4+4 exec --no-startup-id ~/.local/lib/vibenotify/notify.sh focus 4
+bindsym Control+Mod4+5 exec --no-startup-id ~/.local/lib/vibenotify/notify.sh focus 5
+bindsym Control+Mod4+6 exec --no-startup-id ~/.local/lib/vibenotify/notify.sh focus 6
+bindsym Control+Mod4+7 exec --no-startup-id ~/.local/lib/vibenotify/notify.sh focus 7
+bindsym Control+Mod4+8 exec --no-startup-id ~/.local/lib/vibenotify/notify.sh focus 8
+bindsym Control+Mod4+9 exec --no-startup-id ~/.local/lib/vibenotify/notify.sh focus 9
+# <<< vibenotify bindings <<<
