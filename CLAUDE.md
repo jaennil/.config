@@ -7,3 +7,9 @@
 - разделяй комиты на логические едицины. single responsibility principle для комитов
 - never push real credentials to github/gitlab
 - не используй длинные тире, только короткие (-)
+- вместо кавычек елочек используй ""
+
+## amoCRM/WA Lite: логи и БД
+- Runbook: `~/.claude/runbooks/amo-logs-and-dbs.md` - доступы к БД (транспорт/amojo/ядро), как узнать стенд аккаунта, где логи ядра, грабли схемы. Читать ПЕРЕД тем как сказать "проверить нельзя".
+- Исходники всей цепочки локально: транспорт `~/dev/work/amo/gp/wa-multidevice-go-transport`, PHP `~/dev/work/amo/gp/amocrm_whatsapp`, amojo `~/dev/work/amo/amojo/application`, ядро `~/dev/work/amo/core/core_backend` (пути внутри с `app/`).
+- Логи воркеров ядра НЕ пишутся в файл (`Console::write` = `echo`). Чтобы снять: запустить воркера с `nohup ... > /tmp/w.log 2>&1 &`, затем `kill -TERM` и подождать - вывод буферизуется, `kill -9` его уничтожает.
