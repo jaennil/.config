@@ -25,3 +25,6 @@
 [credential "https://gitlab.com"]
 	helper = 
 	helper = !/usr/bin/glab auth git-credential
+
+[includeIf "gitdir:~/dev/work/amo/"]
+	path = ~/.gitconfig-amo
