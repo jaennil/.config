@@ -197,6 +197,20 @@ sudo pacman -S --needed xorg-xset
 Without `xorg-xset`, the fallback through `setxkbmap -query` only reports the
 configured layout and does not reliably track the currently active group.
 
+### Critical battery action
+
+Suspend instead of hibernate when UPower reaches `PercentageAction` (currently
+5%):
+
+```bash
+sudo install -Dm644 ~/.config/upower/10-critical-suspend.conf \
+  /etc/UPower/UPower.conf.d/10-critical-suspend.conf
+sudo systemctl restart upower.service
+```
+
+UPower requires `AllowRiskyCriticalPowerAction=true` for suspend because the
+battery continues to discharge while the machine is sleeping.
+
 ### Yazi git plugin
 
 ya pkg add yazi-rs/plugins:git
