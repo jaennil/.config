@@ -199,8 +199,8 @@ configured layout and does not reliably track the currently active group.
 
 ### Critical battery action
 
-Suspend instead of hibernate when UPower reaches `PercentageAction` (currently
-5%):
+Suspend instead of hibernate when UPower reaches 12% battery. Warning levels
+are set to low at 20% and critical at 15%.
 
 ```bash
 sudo install -Dm644 ~/.config/upower/10-critical-suspend.conf \
