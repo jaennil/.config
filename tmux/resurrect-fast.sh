@@ -65,6 +65,7 @@ strip_colon() { printf '%s' "${1#:}"; }
 # ------------------------------------------------------ sessions and panes ---
 
 declare -A session_seen=() window_seen=()
+first_session=""
 panes=0 windows=0 sessions=0
 
 while IFS=$'\t' read -r type session window win_active win_flags pane_index \
@@ -79,6 +80,7 @@ while IFS=$'\t' read -r type session window win_active win_flags pane_index \
     if [ -z "${session_seen[$session]:-}" ]; then
         add new-session -d -s "$session" -c "$dir"
         session_seen[$session]=1
+        [ -n "$first_session" ] || first_session="$session"
         window_seen[$wkey]=1
         # new-session lands on base-index; move it if the save says otherwise
         [ "$window" != "1" ] && add move-window -s "$session:1" -t "$session:$window"
@@ -159,21 +161,25 @@ restore_processes() {
 
 restore_processes
 
-# The server creates session "0" for us when it starts empty; drop it unless it
-# was part of the save.
-if [ -z "${session_seen[0]:-}" ] && "${TMUX_BIN[@]}" has-session -t "=0" 2>/dev/null; then
-    "${TMUX_BIN[@]}" kill-session -t "=0" 2>/dev/null
-fi
-
+# Restore the invoking client's saved session before removing the temporary
+# session created by a fresh tmux server.
 while IFS=$'\t' read -r type client_session client_last; do
     [ "$type" = "state" ] || continue
     "${TMUX_BIN[@]}" switch-client -t "$client_last" 2>/dev/null
     "${TMUX_BIN[@]}" switch-client -t "$client_session" 2>/dev/null
 done < <(grep '^state' "$FILE")
 
-summary="$(printf 'restored %d sessions / %d windows / %d panes in %d batches%s' \
-    "$sessions" "$windows" "$panes" "$batches" \
-    "$( (( failed )) && printf ', %d commands failed' "$failed")")"
+# The server creates session "0" for us when it starts empty; drop it unless it
+# was part of the save. Explicitly move any clients still attached to it first;
+# killing an attached session would terminate the user's tmux client.
+if [ -z "${session_seen[0]:-}" ] && [ -n "$first_session" ] && \
+   "${TMUX_BIN[@]}" has-session -t "=0" 2>/dev/null; then
+    while IFS=$'\t' read -r client client_session; do
+        [ "$client_session" = "0" ] || continue
+        "${TMUX_BIN[@]}" switch-client -c "$client" -t "=$first_session" 2>/dev/null
+    done < <("${TMUX_BIN[@]}" list-clients -F $'#{client_name}\t#{session_name}' 2>/dev/null)
 
-echo "$summary"
-"${TMUX_BIN[@]}" display-message "resurrect-fast: $summary" 2>/dev/null
+    if ! "${TMUX_BIN[@]}" list-clients -F '#{session_name}' 2>/dev/null | grep -qx '0'; then
+        "${TMUX_BIN[@]}" kill-session -t "=0" 2>/dev/null
+    fi
+fi
